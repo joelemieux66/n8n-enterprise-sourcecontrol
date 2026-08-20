@@ -26,7 +26,7 @@
             "caseSensitive": true,
             "leftValue": "",
             "typeValidation": "strict",
-            "version": 1
+            "version": 2
           },
           "conditions": [
             {
@@ -34,7 +34,8 @@
               "operator": {
                 "type": "boolean",
                 "operation": "true"
-              }
+              },
+              "id": "080a6388-1200-4fb0-b23a-52d181d77e6d"
             }
           ],
           "combinator": "and"
@@ -115,14 +116,19 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://n8n-staging.local/api/v1/source-control/pull",
+        "url": "http://n8n-main.n8n-staging.svc.cluster.local:5678/api/v1/source-control/pull",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "{\"force\": true, \"autoPublish\": \"all\"}",
         "options": {
-          "allowUnauthorizedCerts": true
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
         }
       },
       "id": "4d9b6984-79e8-474b-b4e0-e51bdfd8569b",
@@ -207,15 +213,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://n8n-prod.local/api/v1/source-control/pull",
+        "url": "http://n8n-main.n8n-prod.svc.cluster.local:5678/api/v1/source-control/pull",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "{\"force\": true, \"autoPublish\": \"all\"}",
-        "options": {
-          "allowUnauthorizedCerts": true
-        }
+        "options": {}
       },
       "id": "6d858df4-a2ea-46b2-85be-bcd542b51041",
       "name": "Pull Prod Instance",
@@ -544,7 +548,7 @@
     "binaryMode": "separate"
   },
   "triggerCount": 1,
-  "versionId": "659aecf7-e05b-462c-9ae0-abb7158cf346",
+  "versionId": "2ac535e1-def3-422b-83d6-fd3aca50bb2b",
   "owner": {
     "type": "team",
     "teamId": "TCvP75mJPL0mo8BL",
