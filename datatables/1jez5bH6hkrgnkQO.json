@@ -1,0 +1,44 @@
+{
+  "id": "1jez5bH6hkrgnkQO",
+  "name": "SecOps triage eval set",
+  "columns": [
+    {
+      "id": "9jw1Q7JS2U26jgSc",
+      "name": "alert_type",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "HOCePL89bOz56hjZ",
+      "name": "indicator",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "46eqePVXmVVvpnBt",
+      "name": "source",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "HQ818YaKHmmKbvyd",
+      "name": "expected_verdict",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "NAUeTaEIzMXP2lNU",
+      "name": "expected_severity",
+      "type": "string",
+      "index": 4
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-07-20T16:03:04.180Z",
+  "updatedAt": "2026-07-20T16:10:24.660Z"
+}

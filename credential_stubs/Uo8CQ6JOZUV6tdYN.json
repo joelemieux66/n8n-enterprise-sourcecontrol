@@ -1,0 +1,17 @@
+{
+  "id": "Uo8CQ6JOZUV6tdYN",
+  "name": "Staging API",
+  "type": "httpHeaderAuth",
+  "data": {
+    "name": "",
+    "value": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "TCvP75mJPL0mo8BL",
+    "teamName": "Version Control"
+  },
+  "isGlobal": false,
+  "isResolvable": false,
+  "resolvableAllowFallback": false
+}

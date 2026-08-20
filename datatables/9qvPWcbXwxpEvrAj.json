@@ -1,0 +1,43 @@
+{
+  "id": "9qvPWcbXwxpEvrAj",
+  "name": "Evaluation: SecOps — Triage Agent (tool)",
+  "columns": [
+    {
+      "id": "WovJc2Nei2u2p8h5",
+      "name": "alert_type",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "TAGvYDT4wxmx9Tec",
+      "name": "indicator",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "o99U5CnnDEIoYdU1",
+      "name": "source",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "SIqMBSLsH7YoRVah",
+      "name": "expectedAnswer",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "gVpvXedAvCXI0Jgh",
+      "name": "input",
+      "type": "string",
+      "index": 4
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "createdAt": "2026-07-21T14:59:03.750Z",
+  "updatedAt": "2026-07-21T15:27:25.753Z"
+}

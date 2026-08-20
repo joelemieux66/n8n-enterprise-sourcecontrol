@@ -1,0 +1,55 @@
+{
+  "id": "6yVUcRyemEsFpAJy",
+  "name": "SecOps triage eval set",
+  "columns": [
+    {
+      "id": "UCocBMOoGVbFzz4a",
+      "name": "alert_type",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "2cpeuzuJscc0oXjR",
+      "name": "indicator",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "UpViWeqi8FOoquGO",
+      "name": "source",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "BKeNZEshSqGPLMJ1",
+      "name": "expected_verdict",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "pmDU0mCIxxpm1TJF",
+      "name": "expected_severity",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "nX252iJO8eR5qTfg",
+      "name": "actual_verdict",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "lEvJFs2IrXeDRiAe",
+      "name": "actual_severity",
+      "type": "string",
+      "index": 6
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "createdAt": "2026-07-20T16:57:01.143Z",
+  "updatedAt": "2026-07-20T17:15:46.545Z"
+}

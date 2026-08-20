@@ -1,0 +1,350 @@
+{
+  "id": "vOfMnxTbBZFyCwmi",
+  "name": "DocOps — Multi-Agent: Draft → Review (chat)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### DocOps demo — Multi-agent orchestration\nResponds in the n8n chat (no publishing into the corpus).\n\n1. **Drafter** writes a GTM asset from your chat request, using TWO MCP servers as tools:\n   - **DocOps MCP** (`search_docs`) — internal GTM docs for positioning.\n   - **Notion MCP** (prebuilt) — account / CRM / context data.\n2. **Reviewer** critiques + scores against the style guide (structured output).\n3. **Format reply** returns the draft + verdict to the chat.\n\nShows an agent composing internal RAG + a prebuilt third-party MCP. No write side effects.\n\n**Depends on:** DocOps MCP active, Notion MCP endpoint + credential, OpenAI + Pinecone creds.",
+        "height": 560,
+        "width": 360,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "chat_trigger",
+      "name": "Chat: request a GTM asset",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -48,
+        64
+      ],
+      "webhookId": "39a82a33-5db2-4cf9-b1a9-5dd8b3e5af0d",
+      "notes": "Type the brief here, e.g. 'Draft a battlecard for n8n vs Workato for the Acme account'."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a senior GTM content writer for DocOps. Write the requested asset (battlecard, one-pager, outreach email, etc.) in clean markdown.\n\nTools available:\n- search_docs (DocOps MCP): the team's internal GTM docs (product one-pager, ICP, battlecards, objection handling). Use FIRST for positioning, messaging, and value props.\n- Notion (prebuilt MCP): account, CRM, and context data. Use when the request references a specific account/prospect or needs current context.\n\nGround your claims in retrieved content and cite sources. If something isn't available in either source (e.g. specific pricing), say so rather than inventing it. Follow the messaging style guide. Output only the finished asset."
+        }
+      },
+      "id": "drafter",
+      "name": "Drafter Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "drafter_model",
+      "name": "Drafter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        304
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential + chat model (e.g. gpt-4o)."
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://n8n.local/mcp/docops",
+        "options": {}
+      },
+      "id": "mcp_tools",
+      "name": "DocOps MCP tools",
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        320,
+        304
+      ],
+      "notes": "Points at the DocOps MCP server. It must be ACTIVE. Match its auth (None for the demo)."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review this GTM asset for accuracy, clarity, on-message positioning, and adherence to the messaging style guide. Decide if it is ready to share with a rep.\n\n---\n{{ $json.output }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a meticulous GTM content reviewer. Judge the draft on accuracy vs our positioning, clarity, and adherence to the messaging style guide. Approve only if it is genuinely ready to share. Return the structured verdict."
+        }
+      },
+      "id": "reviewer",
+      "name": "Reviewer Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        704,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "reviewer_model",
+      "name": "Reviewer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        304
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential + chat model."
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"approved\": { \"type\": \"boolean\" },\n    \"score\": { \"type\": \"integer\", \"minimum\": 0, \"maximum\": 100 },\n    \"notes\": { \"type\": \"string\" }\n  },\n  \"required\": [\"approved\", \"score\", \"notes\"]\n}",
+        "autoFix": true
+      },
+      "id": "review_parser",
+      "name": "Review verdict",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "fixer_model",
+      "name": "Fixer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        496
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Coding-capable model to repair malformed JSON."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "output",
+              "type": "string",
+              "value": "={{ $('Drafter Agent').item.json.output }}\n\n---\n**Reviewer verdict:** {{ $json.output.approved ? '✅ Approved' : '⚠️ Needs revision' }}  ·  score {{ $json.output.score }}/100\n\n{{ $json.output.notes }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format_reply",
+      "name": "Format reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1008,
+        64
+      ],
+      "notes": "Builds the chat response: the draft plus the reviewer's verdict."
+    },
+    {
+      "parameters": {
+        "content": "### Draft → Review → reply in chat\nDrafter grounds via TWO MCP servers (DocOps `search_docs` for messaging + Notion for account/CRM context) → Reviewer scores vs the style guide (autoFix parser) → Format reply returns draft + verdict to chat. No writes.",
+        "height": 712,
+        "width": 1328,
+        "color": 5
+      },
+      "id": "sticky_agents",
+      "name": "Sticky: Pipeline",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/mcp-registry.notion",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        304
+      ],
+      "id": "d07b43ec-498d-44cd-90b5-659d8fbd2b0e",
+      "name": "Notion MCP"
+    }
+  ],
+  "connections": {
+    "Chat: request a GTM asset": {
+      "main": [
+        [
+          {
+            "node": "Drafter Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drafter Agent": {
+      "main": [
+        [
+          {
+            "node": "Reviewer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer Agent": {
+      "main": [
+        [
+          {
+            "node": "Format reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drafter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Drafter Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DocOps MCP tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "Drafter Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reviewer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review verdict": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Reviewer Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Review verdict",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "Drafter Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "redactionPolicy": "non-manual",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "c14a4008-39ef-4a8b-8f14-0742d91fa3f5",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "WUsyDwvHKtAbcamV",
+  "isArchived": false,
+  "nodeGroups": []
+}

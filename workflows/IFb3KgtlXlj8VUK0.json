@@ -1,0 +1,503 @@
+{
+  "id": "IFb3KgtlXlj8VUK0",
+  "name": "DevOps — GitHub PR Review (multi-agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### DevOps demo — GitHub PR review\nAll-native GitHub. When a PR opens, an AI reviewer reads the diff, grounds against team standards, and posts a review comment back on the PR.\n\n**Flow:** GitHub Trigger (pull_request) → Get PR diff (GitHub) → PR Reviewer agent (grounds via `search_infra_docs`) → structured verdict → Create Comment on the PR.\n\n**Demo:** open a PR in the repo → within seconds an AI review comment appears citing your standards.\n\n**Wire-up:** GitHub credential (access token) on the 3 GitHub nodes; set owner/repo on the trigger; OpenAI + Pinecone on the reviewer. Reuses the `devops-kb` standards.",
+        "height": 520,
+        "width": 400,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "pullRequest",
+        "operation": "getDiff",
+        "pullRequestNumber": "={{ $json.pr_number }}",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.owner }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.repo }}"
+        }
+      },
+      "id": "get_diff",
+      "name": "Get PR diff",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        64
+      ],
+      "webhookId": "06b76da6-94cf-4c2d-a3ef-7eb563be9d99",
+      "credentials": {
+        "githubApi": {
+          "id": "NVmbTZ3qsmlwk6Ls",
+          "name": "GitHub account"
+        }
+      },
+      "notes": "Select GitHub credential. Fetches the raw diff of the opened PR."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review this pull request diff.\n\n--- DIFF ---\n{{ $json.diff }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a senior engineer reviewing a pull request. Use search_infra_docs to ground your review in the team's standards (tagging, security, encryption, destructive-change, naming, IAM). Review the diff for: correctness risks, security issues, standards/policy violations, and destructive or risky changes. Decide approve / comment / request_changes. Be specific and cite the standard when flagging. Keep it concise and actionable."
+        }
+      },
+      "id": "reviewer",
+      "name": "PR Reviewer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "reviewer_model",
+      "name": "Reviewer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential + chat model."
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the team's engineering and infrastructure standards (tagging, encryption, security, destructive-change, naming, IAM) for guidance relevant to this code change.",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "devops-kb",
+          "cachedResultName": "devops-kb"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "infra_docs",
+      "name": "Search infra docs",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        544,
+        320
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      },
+      "notes": "Select Pinecone credential. Reuses index devops-kb (the infra standards)."
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "id": "infra_embeddings",
+      "name": "Infra Docs Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        528
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential. text-embedding-3-small @ 1024 to match devops-kb."
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"decision\": { \"type\": \"string\", \"enum\": [\"approve\", \"comment\", \"request_changes\"] },\n    \"summary\": { \"type\": \"string\" },\n    \"findings\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"decision\", \"summary\", \"findings\"]\n}",
+        "autoFix": true
+      },
+      "id": "verdict_parser",
+      "name": "Review verdict",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "fixer_model",
+      "name": "Fixer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        528
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Coding-capable model to repair malformed JSON."
+    },
+    {
+      "parameters": {
+        "resource": "pullRequest",
+        "operation": "createComment",
+        "pullRequestNumber": "={{ $('PR ref').item.json.pr_number }}",
+        "body": "=## 🤖 AI PR Review — {{ $('PR Reviewer').item.json.output.decision }}\n\n{{ $('PR Reviewer').item.json.output.summary }}\n\n**Findings:**\n- {{ $('PR Reviewer').item.json.output.findings.join('\\n- ') }}\n\n_Automated review against team standards (devops-kb)._",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('PR ref').item.json.owner }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('PR ref').item.json.repo }}"
+        }
+      },
+      "id": "post_comment",
+      "name": "Post PR review comment",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        64
+      ],
+      "webhookId": "7c70522e-cdfc-4751-ad0a-9b6b011a2a0b",
+      "credentials": {
+        "githubApi": {
+          "id": "NVmbTZ3qsmlwk6Ls",
+          "name": "GitHub account"
+        }
+      },
+      "notes": "Select GitHub credential. Posts the AI review back on the PR."
+    },
+    {
+      "parameters": {
+        "content": "### PR opened → review → comment\nGet the diff → PR Reviewer grounds in standards (search_infra_docs) → structured verdict → posts a review comment back on the PR. Read/advisory — doesn't block or merge.",
+        "height": 130,
+        "width": 800,
+        "color": 5
+      },
+      "id": "sticky_pipe",
+      "name": "Sticky: Pipeline",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pr-review",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_trig",
+      "name": "Review request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        64
+      ],
+      "webhookId": "a34e9b7c-c7c2-4c55-8c4f-dccfda88b994",
+      "notes": "POST /webhook/pr-review with body { owner, repo, pr_number }. Defaults to joelemieux66/self-host-demo if omitted."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "o1",
+              "name": "owner",
+              "type": "string",
+              "value": "={{ $json.body?.owner || 'joelemieux66' }}"
+            },
+            {
+              "id": "o2",
+              "name": "repo",
+              "type": "string",
+              "value": "={{ $json.body?.repo || 'self-host-demo' }}"
+            },
+            {
+              "id": "o3",
+              "name": "pr_number",
+              "type": "number",
+              "value": "={{ $json.body?.pr_number || 1 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "pr_ref",
+      "name": "PR ref",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        64
+      ]
+    },
+    {
+      "id": "deny_gate",
+      "name": "Deny?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        60
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": false,
+            "typeValidation": "loose"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $('PR Reviewer').item.json.output.decision }}",
+              "rightValue": "request_changes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $('PR Reviewer').item.json.output.decision }}",
+              "rightValue": "block",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "close_pr",
+      "name": "Close PR (deny)",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1260,
+        -40
+      ],
+      "parameters": {
+        "resource": "pullRequest",
+        "operation": "close",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('PR ref').item.json.owner }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('PR ref').item.json.repo }}"
+        },
+        "pullRequestNumber": "={{ $('PR ref').item.json.pr_number }}"
+      },
+      "disabled": true,
+      "notes": "ENABLE + attach the GitHub credential. Closes the PR on a request_changes/block verdict.",
+      "webhookId": "13639cb8-3237-41a3-b9d9-b4e4cba4c2d6"
+    }
+  ],
+  "connections": {
+    "Get PR diff": {
+      "main": [
+        [
+          {
+            "node": "PR Reviewer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PR Reviewer": {
+      "main": [
+        [
+          {
+            "node": "Post PR review comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PR Reviewer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search infra docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "PR Reviewer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Infra Docs Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search infra docs",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review verdict": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "PR Reviewer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Review verdict",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review request": {
+      "main": [
+        [
+          {
+            "node": "PR ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PR ref": {
+      "main": [
+        [
+          {
+            "node": "Get PR diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post PR review comment": {
+      "main": [
+        [
+          {
+            "node": "Deny?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deny?": {
+      "main": [
+        [
+          {
+            "node": "Close PR (deny)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 1,
+  "versionId": "4352dd81-4d63-475e-89ba-5cd0b39ccd8e",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "peYCBUYHSMGDH7vA",
+  "isArchived": false,
+  "nodeGroups": []
+}
