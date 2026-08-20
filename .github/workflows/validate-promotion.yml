@@ -50,7 +50,7 @@ jobs:
           fail=0
           for f in "${files[@]}"; do
             echo "Validating $f against n8n-dev..."
-            payload=$(jq '{name: ("CI validation - " + (.name // "unnamed")), nodes, connections, settings: (.settings // {})}' "$f")
+            payload=$(jq '{name: ("CI validation - " + (.name // "unnamed")), nodes, connections, settings: {executionOrder: "v1"}}' "$f")
 
             response=$(curl -s -w "\n%{http_code}" -X POST "$N8N_API_BASE/workflows" \
               -H "X-N8N-API-KEY: ${{ secrets.N8N_DEV_API_KEY }}" \
