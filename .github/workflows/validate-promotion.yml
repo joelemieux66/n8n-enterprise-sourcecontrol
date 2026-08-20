@@ -1,0 +1,83 @@
+name: Validate promotion to staging
+
+on:
+  pull_request:
+    branches: [staging]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  lint-json:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate workflow JSON structure
+        run: |
+          set -e
+          shopt -s nullglob
+          files=(workflows/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No workflow JSON files found under workflows/ - nothing to lint."
+            exit 0
+          fi
+          for f in "${files[@]}"; do
+            echo "Checking $f"
+            jq empty "$f"
+            jq -e 'has("nodes") and has("connections")' "$f" > /dev/null \
+              || { echo "::error file=$f::Missing required 'nodes' or 'connections' key"; exit 1; }
+          done
+          echo "All workflow JSON files are structurally valid."
+
+  validate-n8n:
+    needs: lint-json
+    runs-on: ubuntu-latest
+    env:
+      N8N_API_BASE: https://n8n-dev-demo.joseph-lemieux.com/api/v1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import each workflow as a scratch draft to validate against live n8n
+        run: |
+          set -e
+          shopt -s nullglob
+          files=(workflows/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No workflow JSON files found under workflows/ - nothing to validate."
+            exit 0
+          fi
+          fail=0
+          for f in "${files[@]}"; do
+            echo "Validating $f against n8n-dev..."
+            payload=$(jq '{name: ("CI validation - " + (.name // "unnamed")), nodes, connections, settings: (.settings // {})}' "$f")
+
+            response=$(curl -s -w "\n%{http_code}" -X POST "$N8N_API_BASE/workflows" \
+              -H "X-N8N-API-KEY: ${{ secrets.N8N_DEV_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d "$payload")
+            status=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | sed '$d')
+
+            if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
+              id=$(echo "$body" | jq -r '.id')
+              echo "  n8n accepted $f (scratch id $id) - cleaning up"
+              curl -s -X DELETE "$N8N_API_BASE/workflows/$id" \
+                -H "X-N8N-API-KEY: ${{ secrets.N8N_DEV_API_KEY }}" > /dev/null
+            else
+              echo "::error file=$f::n8n rejected this workflow (HTTP $status): $body"
+              fail=1
+            fi
+          done
+          exit $fail
+
+  auto-merge:
+    needs: [lint-json, validate-n8n]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge --merge --admin "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}"
