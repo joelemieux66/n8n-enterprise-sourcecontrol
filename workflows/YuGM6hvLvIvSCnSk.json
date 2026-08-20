@@ -1,0 +1,820 @@
+{
+  "id": "YuGM6hvLvIvSCnSk",
+  "name": "SecOps — Alert Triage (multi-agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### SecOps — Orchestrated Alert Triage\nA guarded, multi-agent SOC pipeline.\n\n**1. Guardrails (input):** the alert text is attacker-influenced. Screens for prompt-injection (jailbreak) + leaked secrets before any LLM sees it. Flagged → quarantine.\n**2. Orchestrator agent:** calls the **Triage Agent** (sub-workflow) to get a verdict, then — only for confirmed high/critical — calls the **Response Planner** (sub-workflow) for a containment plan. Both ground in IR runbooks (RAG).\n**3. Severity gate → HITL:** high/critical routes through a **form approval** before any write.\n**4. Write:** on approval, open a **Better Stack** incident (on-call / IRM system of record). Critical severity also triggers call + SMS + critical push.\n\n**Wire-up:** OpenAI, urlscan.io, Pinecone (secops-kb) on the sub-workflows; a **Better Stack API token** (httpBearerAuth) on the write. HITL is credential-free (n8n form).",
+        "height": 620,
+        "width": 420,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "secops-triage",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "SIEM webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -160
+      ],
+      "webhookId": "86cc5cda-7a31-4282-b3af-068a48316f61"
+    },
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Run triage",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "alert_type",
+              "type": "string",
+              "value": "={{ $json.body?.alert_type || 'CONFIRMED ACTIVE INCIDENT: ransomware encrypting 200+ production servers; domain controller compromised; active data exfiltration in progress' }}"
+            },
+            {
+              "id": "a2",
+              "name": "indicator",
+              "type": "string",
+              "value": "={{ $json.body?.indicator || 'cobalt-strike-c2.ransom-gang.example' }}"
+            },
+            {
+              "id": "a3",
+              "name": "source",
+              "type": "string",
+              "value": "={{ $json.body?.source || 'EDR - CrowdStrike Falcon (confirmed, multiple hosts)' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "alert",
+      "name": "Incoming alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        128,
+        96
+      ],
+      "notes": "Sample alert. Swap for a real SIEM payload via the webhook."
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.alert_type }} | {{ $json.indicator }} | {{ $json.source }}",
+        "guardrails": {
+          "jailbreak": {
+            "value": {
+              "threshold": 0.8
+            }
+          }
+        }
+      },
+      "id": "guardrails_in",
+      "name": "Input Guardrails",
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 2,
+      "position": [
+        288,
+        96
+      ],
+      "notes": "Output 0 = clean (pass), Output 1 = flagged. Screens attacker-controlled alert text for prompt injection + leaked secrets."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "guardrails_llm",
+      "name": "Guardrails LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        272
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Triage this alert and, if warranted, plan a response.\n\nType: {{ $('Incoming alert').item.json.alert_type }}\nIndicator: {{ $('Incoming alert').item.json.indicator }}\nSource: {{ $('Incoming alert').item.json.source }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the SecOps triage orchestrator. Coordinate two specialist sub-agents exposed as tools:\n\n1. ALWAYS call `triage_agent` first, passing the alert type, indicator, and source. It returns a structured verdict (malicious/suspicious/benign) and severity, grounded in IR runbooks.\n2. IF the verdict is 'malicious' or 'suspicious' AND severity is 'high' or 'critical', call `response_planner` with the verdict, severity, alert type, indicator, and the triage rationale. It returns a runbook-grounded containment plan. If not escalating, do NOT call it and leave containment_steps empty.\n3. Return a single combined structured decision. Preserve the sub-agents' verdict/severity exactly — do not override them. Cite any runbook the sub-agents referenced in the rationale.\n\nBe conservative: when evidence is mixed, prefer 'suspicious' over 'benign'.",
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "orchestrator",
+      "name": "Orchestrator Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        816,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "orch_model",
+      "name": "Orchestrator Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        368
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Triage a security alert: enrich the indicator with urlscan.io + threat intel, ground severity in IR runbooks, and return a structured verdict (verdict, severity, iocs, rationale, recommended_actions). Call this first for every alert.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vjTY6ysgqnODjM2j",
+          "cachedResultName": "SecOps — Triage Agent (tool)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "alert_type": "={{ $fromAI('alert_type', 'The alert type / description', 'string') }}",
+            "indicator": "={{ $fromAI('indicator', 'The IOC indicator (URL, domain, IP, hash)', 'string') }}",
+            "source": "={{ $fromAI('source', 'The alert source system', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "alert_type",
+              "displayName": "alert_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "indicator",
+              "displayName": "indicator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "id": "tool_triage",
+      "name": "Triage Agent",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Build a runbook-grounded containment + eradication plan for a confirmed higher-severity alert. Only call after triage_agent returns malicious/suspicious at high/critical severity. Returns case_severity, containment_steps, eradication_steps, notifications, summary.",
+        "workflowId": {
+          "__rl": true,
+          "value": "9x0WXVgpMJZB2D99",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/9x0WXVgpMJZB2D99",
+          "cachedResultName": "KR1 — SecOps — Response Planner (tool)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "verdict": "={{ $fromAI('verdict', 'Triage verdict: malicious/suspicious/benign', 'string') }}",
+            "severity": "={{ $fromAI('severity', 'Triage severity: low/medium/high/critical', 'string') }}",
+            "alert_type": "={{ $fromAI('alert_type', 'The alert type / description', 'string') }}",
+            "indicator": "={{ $fromAI('indicator', 'The IOC indicator', 'string') }}",
+            "rationale": "={{ $fromAI('rationale', 'The triage rationale', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "verdict",
+              "displayName": "verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "alert_type",
+              "displayName": "alert_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "indicator",
+              "displayName": "indicator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "rationale",
+              "displayName": "rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "id": "tool_response",
+      "name": "Response Planner",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"verdict\": { \"type\": \"string\", \"enum\": [\"malicious\", \"suspicious\", \"benign\"] },\n    \"severity\": { \"type\": \"string\", \"enum\": [\"low\", \"medium\", \"high\", \"critical\"] },\n    \"iocs\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"rationale\": { \"type\": \"string\" },\n    \"recommended_actions\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"containment_steps\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"notifications\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"verdict\", \"severity\", \"rationale\", \"recommended_actions\"]\n}",
+        "autoFix": true
+      },
+      "id": "orch_parser",
+      "name": "Triage decision",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "fixer_model",
+      "name": "Fixer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        544
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "s1",
+              "leftValue": "={{ $json.output.severity }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "s2",
+              "leftValue": "={{ $json.output.severity }}",
+              "rightValue": "critical",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sev_gate",
+      "name": "High severity?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "SecOps — Containment approval",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "decision",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve"
+                  },
+                  {
+                    "option": "Reject"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "hitl_form",
+      "name": "Approve containment",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1712,
+        -176
+      ],
+      "webhookId": "secops-hitl-approval",
+      "notes": "HITL gate. Pauses and serves a form ($execution.resumeFormUrl) with Approve/Reject. No credential needed. Swap for a Slack/Gmail 'Send and Wait' if you prefer a chat/email approval."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ap1",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "Approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "approved_gate",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1904,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1",
+              "name": "disposition",
+              "type": "string",
+              "value": "=ESCALATED — analyst approved; Better Stack incident opened (id {{ $json.data.id }}). Containment plan attached; on-call notified."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "escalate",
+      "name": "Escalate incident",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2352,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "h1",
+              "name": "disposition",
+              "type": "string",
+              "value": "HELD — analyst rejected containment at the approval gate. No case opened; logged for review."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "held",
+      "name": "Held for review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2128,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2",
+              "name": "disposition",
+              "type": "string",
+              "value": "AUTO-CLOSED — low/medium risk; logged for the record."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "autoclose",
+      "name": "Auto-close",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1504,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "q1",
+              "name": "output",
+              "type": "string",
+              "value": "=## ⚠️ Alert quarantined — guardrail tripped\n\nThe incoming alert text was flagged by the input guardrails (prompt-injection or leaked-secret pattern) and was NOT sent to the triage agents.\n\n**Alert:** {{ $('Incoming alert').item.json.alert_type }}\n**Indicator:** {{ $('Incoming alert').item.json.indicator }}\n\nRouted to a human analyst for manual review."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "quarantine",
+      "name": "Quarantine alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### HITL — human approval\nHigh/critical severity routes through a **form approval** (Approve/Reject at $execution.resumeFormUrl). Nothing is written to the SOAR until an analyst approves. Reject → held, no case opened. Swap for Slack/Gmail 'Send and Wait' once a comms credential is shared with this project.",
+        "height": 300,
+        "width": 360,
+        "color": 3
+      },
+      "id": "sticky_hitl",
+      "name": "Sticky: HITL",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Guardrails (input)\nAlert text is attacker-influenced. Screens for prompt-injection (jailbreak) + leaked secrets before any LLM. Flagged → quarantine, never reaches the agents.",
+        "height": 240,
+        "width": 340,
+        "color": 5
+      },
+      "id": "sticky_guardrails",
+      "name": "Sticky: Guardrails",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://uptime.betterstack.com/api/v3/incidents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"name\": ($('Orchestrator Agent').item.json.output.verdict + ' — ' + $('Incoming alert').item.json.alert_type).replace(/\\n/g,' ').slice(0,100),\n  \"summary\": ('[' + String($('Orchestrator Agent').item.json.output.severity || 'high').toUpperCase() + '] ' + $('Orchestrator Agent').item.json.output.verdict + ' — ' + $('Incoming alert').item.json.indicator).slice(0,255),\n  \"description\": (($('Orchestrator Agent').item.json.output.rationale || 'See triage report') + '\\n\\n---\\nIndicator: ' + $('Incoming alert').item.json.indicator + '\\nVerdict: ' + $('Orchestrator Agent').item.json.output.verdict + '\\nSeverity: ' + $('Orchestrator Agent').item.json.output.severity + '\\nSource: n8n-secops-triage · Ref: secops-' + $now.toMillis()).slice(0,4000),\n  \"requester_email\": \"joe.lemieux@n8n.io\",\n  \"email\": true,\n  \"call\": $('Orchestrator Agent').item.json.output.severity === 'critical',\n  \"sms\": $('Orchestrator Agent').item.json.output.severity === 'critical',\n  \"critical_alert\": $('Orchestrator Agent').item.json.output.severity === 'critical'\n} }}",
+        "options": {}
+      },
+      "id": "a8e4eee1-c5d6-455d-bb7e-72d6547efc15",
+      "name": "Open Better Stack incident",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2128,
+        -336
+      ],
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "wEz3JJryhlr1mlll",
+          "name": "Better Stack"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run triage": {
+      "main": [
+        [
+          {
+            "node": "Incoming alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SIEM webhook": {
+      "main": [
+        [
+          {
+            "node": "Incoming alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incoming alert": {
+      "main": [
+        [
+          {
+            "node": "Input Guardrails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Input Guardrails",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Guardrails": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Quarantine alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orchestrator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Orchestrator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response Planner": {
+      "ai_tool": [
+        [
+          {
+            "node": "Orchestrator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage decision": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Orchestrator Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Triage decision",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator Agent": {
+      "main": [
+        [
+          {
+            "node": "High severity?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High severity?": {
+      "main": [
+        [
+          {
+            "node": "Approve containment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auto-close",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve containment": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Open Better Stack incident",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Held for review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open Better Stack incident": {
+      "main": [
+        [
+          {
+            "node": "Escalate incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": false,
+    "redactionPolicy": "non-manual",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 1,
+  "versionId": "b475bdb2-9f30-4b9d-9804-9dbb35a1b3b2",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "d2viq1Z0dhhc5B8G",
+  "isArchived": false,
+  "nodeGroups": []
+}

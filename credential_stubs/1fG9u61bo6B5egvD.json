@@ -1,0 +1,17 @@
+{
+  "id": "1fG9u61bo6B5egvD",
+  "name": "Prod API",
+  "type": "httpHeaderAuth",
+  "data": {
+    "name": "",
+    "value": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "TCvP75mJPL0mo8BL",
+    "teamName": "Version Control"
+  },
+  "isGlobal": false,
+  "isResolvable": false,
+  "resolvableAllowFallback": false
+}

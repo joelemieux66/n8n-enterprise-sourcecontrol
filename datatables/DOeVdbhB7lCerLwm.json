@@ -1,0 +1,19 @@
+{
+  "id": "DOeVdbhB7lCerLwm",
+  "name": "Test Data Table",
+  "columns": [
+    {
+      "id": "wEZK3ZrcyIPDllDE",
+      "name": "Name",
+      "type": "string",
+      "index": 0
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "createdAt": "2026-06-24T14:15:53.594Z",
+  "updatedAt": "2026-06-24T14:16:24.137Z"
+}

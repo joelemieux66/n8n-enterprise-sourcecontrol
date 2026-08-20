@@ -1,0 +1,200 @@
+{
+  "id": "NdUaLDHqR50TgOk1",
+  "name": "SecOps — Eval (quick run)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### Quick eval — one-click accuracy\nRuns a built-in labeled set through the **Triage Agent** and returns a scorecard (verdict + severity accuracy) right in the output. **Self-contained** — cases are embedded here, so no Data Table / project dependency.\n\n**Two ways to run:**\n- Click **Test workflow** (manual trigger) — report shows on the canvas.\n- GET the webhook `secops-eval-run` — JSON scorecard in the response.\n\nThe table-backed version (Evaluations tab metrics) is the separate *SecOps — Eval: Triage accuracy* workflow.",
+        "height": 400,
+        "width": 460,
+        "color": 4
+      },
+      "id": "sticky_qe",
+      "name": "Sticky: About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -208
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Run eval",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "secops-eval-run",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Eval webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -176
+      ],
+      "webhookId": "secops-eval-run-hook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Built-in labeled eval set (kept in sync with the 'SecOps triage eval set' Data Table).\nreturn [\n  { json: { alert_type: 'Ransomware encrypting multiple production servers; domain controller compromised; active data exfiltration', indicator: 'cobalt-strike-c2.ransom-gang.example', source: 'EDR - CrowdStrike Falcon (confirmed, multiple hosts)', expected_verdict: 'malicious', expected_severity: 'critical' } },\n  { json: { alert_type: 'Outbound beacon to known Cobalt Strike C2 every 60s from a single workstation', indicator: '185.220.101.47', source: 'Zeek network sensor', expected_verdict: 'malicious', expected_severity: 'high' } },\n  { json: { alert_type: 'User reported phishing email with a credential-harvesting link', indicator: 'https://secure-login-verify.example.com/o365', source: 'Email gateway - Proofpoint', expected_verdict: 'suspicious', expected_severity: 'medium' } },\n  { json: { alert_type: 'Inbound TCP port scan across /24 from external IP', indicator: '198.51.100.23', source: 'Firewall - Palo Alto', expected_verdict: 'suspicious', expected_severity: 'low' } },\n  { json: { alert_type: 'Scheduled vulnerability scan from the approved internal scanner', indicator: '10.20.0.15', source: 'Qualys scanner (allowlisted)', expected_verdict: 'benign', expected_severity: 'low' } },\n];"
+      },
+      "id": "cases",
+      "name": "Eval cases",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vjTY6ysgqnODjM2j",
+          "cachedResultName": "SecOps — Triage Agent (tool)"
+        },
+        "mode": "each",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "alert_type": "={{ $json.alert_type }}",
+            "indicator": "={{ $json.indicator }}",
+            "source": "={{ $json.source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "alert_type",
+              "displayName": "alert_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "indicator",
+              "displayName": "indicator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "run_agent",
+      "name": "Run Triage Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $('Eval cases').all().map(i => i.json);\nconst outs = $input.all().map(i => i.json);\nlet v = 0, s = 0;\nconst detail = [];\nfor (let k = 0; k < rows.length; k++) {\n  const exp = rows[k] || {};\n  const got = (outs[k] && outs[k].output) ? outs[k].output : {};\n  const vOk = got.verdict === exp.expected_verdict;\n  const sOk = got.severity === exp.expected_severity;\n  if (vOk) v++;\n  if (sOk) s++;\n  detail.push({\n    alert: exp.alert_type,\n    expected_verdict: exp.expected_verdict,\n    actual_verdict: got.verdict ?? '(none)',\n    verdict_ok: vOk ? 1 : 0,\n    expected_severity: exp.expected_severity,\n    actual_severity: got.severity ?? '(none)',\n    severity_ok: sOk ? 1 : 0,\n  });\n}\nconst n = rows.length || 1;\nconst summary = {\n  cases: rows.length,\n  verdict_accuracy: Number((v / n).toFixed(2)),\n  severity_accuracy: Number((s / n).toFixed(2)),\n};\nconst report = `# SecOps triage eval\\n\\n**Cases:** ${summary.cases}  ·  **Verdict accuracy:** ${Math.round(summary.verdict_accuracy*100)}%  ·  **Severity accuracy:** ${Math.round(summary.severity_accuracy*100)}%\\n\\n` +\n  detail.map(l => `- ${l.verdict_ok? '✅':'❌'} verdict / ${l.severity_ok? '✅':'❌'} severity — got ${l.actual_verdict}/${l.actual_severity}, expected ${l.expected_verdict}/${l.expected_severity} — ${String(l.alert||'').slice(0,60)}`).join('\\n');\nreturn [{ json: { summary, detail, report } }];"
+      },
+      "id": "score",
+      "name": "Scorecard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -48
+      ]
+    }
+  ],
+  "connections": {
+    "Run eval": {
+      "main": [
+        [
+          {
+            "node": "Eval cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eval webhook": {
+      "main": [
+        [
+          {
+            "node": "Eval cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eval cases": {
+      "main": [
+        [
+          {
+            "node": "Run Triage Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Triage Agent": {
+      "main": [
+        [
+          {
+            "node": "Scorecard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 1,
+  "versionId": "5f7e6f93-6d69-41e8-be59-cbc7e3a8b95b",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "d2viq1Z0dhhc5B8G",
+  "isArchived": true,
+  "nodeGroups": []
+}

@@ -1,0 +1,16 @@
+{
+  "id": "W8qK4dCyGa2lOmi7",
+  "name": "KR1",
+  "icon": {
+    "type": "icon",
+    "value": "layers"
+  },
+  "description": "",
+  "type": "team",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "variableStubs": []
+}

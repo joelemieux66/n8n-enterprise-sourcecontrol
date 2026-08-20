@@ -1,0 +1,67 @@
+{
+  "id": "HLjnYGPCMOiUUKAE",
+  "name": "outreach_log",
+  "columns": [
+    {
+      "id": "FLjbi1g19Us1VOVj",
+      "name": "email",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "8Wiphkd7njDAweSv",
+      "name": "company",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "9fVpflqooUrDOuS0",
+      "name": "contactName",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "c2nfRdRF76KKzPMr",
+      "name": "contactRole",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "C0oaFJs1Kff6qf1U",
+      "name": "sessionId",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "6ki7suTbGJEfL8qs",
+      "name": "lastSubject",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "Sde7LhW2A3OBNnfC",
+      "name": "step",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "BHigUPhxxgSau7ne",
+      "name": "status",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "dlPplkxzLCFEkEIe",
+      "name": "nextActionAt",
+      "type": "date",
+      "index": 8
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "FGee2Rffy5CZODVa",
+    "teamName": "Onboarding - SDR Assistant"
+  },
+  "createdAt": "2026-06-30T16:11:49.593Z",
+  "updatedAt": "2026-07-23T14:38:11.815Z"
+}

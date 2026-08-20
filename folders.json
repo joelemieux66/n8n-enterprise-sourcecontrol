@@ -1,0 +1,76 @@
+{
+  "folders": [
+    {
+      "id": "HEcrJqQ0CssZz19u",
+      "name": "Tools",
+      "parentFolderId": null,
+      "homeProjectId": "FGee2Rffy5CZODVa",
+      "createdAt": "2026-06-25T20:42:07.062Z",
+      "updatedAt": "2026-06-25T20:42:07.062Z"
+    },
+    {
+      "id": "isUNima2tvEuPZbZ",
+      "name": "Errors",
+      "parentFolderId": null,
+      "homeProjectId": "FGee2Rffy5CZODVa",
+      "createdAt": "2026-06-25T20:42:35.887Z",
+      "updatedAt": "2026-06-25T20:42:35.887Z"
+    },
+    {
+      "id": "flYDbuk91AeKVa0h",
+      "name": "MCP",
+      "parentFolderId": null,
+      "homeProjectId": "FGee2Rffy5CZODVa",
+      "createdAt": "2026-06-25T20:42:49.065Z",
+      "updatedAt": "2026-06-25T20:42:49.065Z"
+    },
+    {
+      "id": "SMw55GkRI4QGSQpK",
+      "name": "Agents",
+      "parentFolderId": null,
+      "homeProjectId": "FGee2Rffy5CZODVa",
+      "createdAt": "2026-06-25T20:43:43.661Z",
+      "updatedAt": "2026-06-25T20:43:43.661Z"
+    },
+    {
+      "id": "TX0DoU7f1TCMqeY0",
+      "name": "Vectors",
+      "parentFolderId": null,
+      "homeProjectId": "FGee2Rffy5CZODVa",
+      "createdAt": "2026-06-25T20:43:58.168Z",
+      "updatedAt": "2026-06-25T20:43:58.168Z"
+    },
+    {
+      "id": "WUsyDwvHKtAbcamV",
+      "name": "DocOps",
+      "parentFolderId": null,
+      "homeProjectId": "W8qK4dCyGa2lOmi7",
+      "createdAt": "2026-07-16T19:36:04.760Z",
+      "updatedAt": "2026-07-16T19:36:04.760Z"
+    },
+    {
+      "id": "rc29Dg7CZGgTxz8V",
+      "name": "Tools",
+      "parentFolderId": "WUsyDwvHKtAbcamV",
+      "homeProjectId": "W8qK4dCyGa2lOmi7",
+      "createdAt": "2026-07-16T20:40:40.906Z",
+      "updatedAt": "2026-07-16T20:40:40.906Z"
+    },
+    {
+      "id": "d2viq1Z0dhhc5B8G",
+      "name": "SecOps",
+      "parentFolderId": null,
+      "homeProjectId": "W8qK4dCyGa2lOmi7",
+      "createdAt": "2026-07-17T11:37:13.843Z",
+      "updatedAt": "2026-07-17T11:37:13.843Z"
+    },
+    {
+      "id": "peYCBUYHSMGDH7vA",
+      "name": "DevOps",
+      "parentFolderId": null,
+      "homeProjectId": "W8qK4dCyGa2lOmi7",
+      "createdAt": "2026-07-17T17:44:27.957Z",
+      "updatedAt": "2026-07-17T17:44:27.957Z"
+    }
+  ]
+}

@@ -1,0 +1,556 @@
+{
+  "id": "VjZ8UMkT85Bp2mZX",
+  "name": "GitHub to n8n Environment Promotion",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "github-promotion-pipeline",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "62a4044c-627c-48b5-ab0b-c3f10a83f955",
+      "name": "GitHub PR Merge Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -672,
+        384
+      ],
+      "webhookId": "708b441e-d9a1-4368-8f7b-f37eab0faf7c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.body.pull_request.merged }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fdee34d8-79bb-4740-818f-f1c3f3dfc151",
+      "name": "Was PR Merged?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -448,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.pull_request.base.ref }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "staging"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.pull_request.base.ref }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "main"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Other Branch"
+        }
+      },
+      "id": "64fdb55c-7221-4422-8b99-df5489349c7b",
+      "name": "Route by Target Branch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n-staging.local/api/v1/source-control/pull",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"force\": true, \"autoPublish\": \"all\"}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "4d9b6984-79e8-474b-b4e0-e51bdfd8569b",
+      "name": "Pull Staging Instance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        16
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Uo8CQ6JOZUV6tdYN",
+          "name": "Staging API"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "env",
+              "name": "environment",
+              "value": "staging",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "branch",
+              "name": "branch",
+              "value": "={{ $('GitHub PR Merge Webhook').item.json.body.pull_request.base.ref }}",
+              "type": "string"
+            },
+            {
+              "id": "pr",
+              "name": "pullRequestNumber",
+              "value": "={{ $('GitHub PR Merge Webhook').item.json.body.pull_request.number }}",
+              "type": "number"
+            },
+            {
+              "id": "result",
+              "name": "pulledFiles",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4f8390be-6888-4322-98c7-568b0b5b4b9b",
+      "name": "Format Staging Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2022cbe6-6d56-4027-80d1-24f51ca6e331",
+      "name": "Respond Staging",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n-prod.local/api/v1/source-control/pull",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"force\": true, \"autoPublish\": \"all\"}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "6d858df4-a2ea-46b2-85be-bcd542b51041",
+      "name": "Pull Prod Instance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1fG9u61bo6B5egvD",
+          "name": "Prod API"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "env",
+              "name": "environment",
+              "value": "prod",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "branch",
+              "name": "branch",
+              "value": "={{ $('GitHub PR Merge Webhook').item.json.body.pull_request.base.ref }}",
+              "type": "string"
+            },
+            {
+              "id": "pr",
+              "name": "pullRequestNumber",
+              "value": "={{ $('GitHub PR Merge Webhook').item.json.body.pull_request.number }}",
+              "type": "number"
+            },
+            {
+              "id": "result",
+              "name": "pulledFiles",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7833d44d-aeff-4cda-949c-7909e423c572",
+      "name": "Format Prod Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cd9c7203-a282-41ef-833c-33027b4149c6",
+      "name": "Respond Prod",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        656,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "msg",
+              "name": "message",
+              "value": "={{ 'Ignoring merge into ' + $json.body.pull_request.base.ref + ' (not staging or main)' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0c713ac-60e8-4d7d-85db-8fa740e64297",
+      "name": "Log Unmatched Branch",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "61cf1e27-0179-430c-9b39-2b15f47263ec",
+      "name": "Respond No Action",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        224,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "msg",
+              "name": "message",
+              "value": "={{ 'PR #' + $json.body.pull_request.number + ' closed without merge - no action taken' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2d3b8aa4-3790-4e2e-8a7c-91654eed9b93",
+      "name": "Log Not Merged",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "4e0ceebc-1681-494e-b590-979aa704654f",
+      "name": "Respond Not Merged",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": \"upstream_error\", \"message\": ($json.error && $json.error.message) || $json.message || \"Failed to pull changes into the target n8n instance\" } }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "a9148fc0-1fdd-47ee-b3e0-88bfee15e8c9",
+      "name": "Respond Deploy Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "content": "GitOps promotion pipeline. GitHub delivers PR-merge events here. Merging into staging or main pulls the corresponding branch into that n8n instance via Source Control Pull, so each environment always reflects what was reviewed and merged - not what was last edited in its own UI.",
+        "height": 232,
+        "width": 300,
+        "color": 4
+      },
+      "id": "8f5f2670-02b7-4fee-8fe1-de4d18f28d37",
+      "name": "Sticky Note 7de56b5d",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        112
+      ]
+    }
+  ],
+  "connections": {
+    "GitHub PR Merge Webhook": {
+      "main": [
+        [
+          {
+            "node": "Was PR Merged?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was PR Merged?": {
+      "main": [
+        [
+          {
+            "node": "Route by Target Branch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Not Merged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Target Branch": {
+      "main": [
+        [
+          {
+            "node": "Pull Staging Instance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pull Prod Instance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Unmatched Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Staging Instance": {
+      "main": [
+        [
+          {
+            "node": "Format Staging Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Deploy Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Staging Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Staging",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Prod Instance": {
+      "main": [
+        [
+          {
+            "node": "Format Prod Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Deploy Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Prod Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Prod",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Unmatched Branch": {
+      "main": [
+        [
+          {
+            "node": "Respond No Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Not Merged": {
+      "main": [
+        [
+          {
+            "node": "Respond Not Merged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 1,
+  "versionId": "659aecf7-e05b-462c-9ae0-abb7158cf346",
+  "owner": {
+    "type": "team",
+    "teamId": "TCvP75mJPL0mo8BL",
+    "teamName": "Version Control"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}

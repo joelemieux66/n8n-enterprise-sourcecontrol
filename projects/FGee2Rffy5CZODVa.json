@@ -1,0 +1,16 @@
+{
+  "id": "FGee2Rffy5CZODVa",
+  "name": "Onboarding - SDR Assistant",
+  "icon": {
+    "type": "icon",
+    "value": "layers"
+  },
+  "description": "",
+  "type": "team",
+  "owner": {
+    "type": "team",
+    "teamId": "FGee2Rffy5CZODVa",
+    "teamName": "Onboarding - SDR Assistant"
+  },
+  "variableStubs": []
+}

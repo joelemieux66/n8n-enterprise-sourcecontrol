@@ -1,0 +1,186 @@
+{
+  "id": "UT5ubjhai2V0sQWd",
+  "name": "DevOps — MCP: Enrichment Server",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### DevOps MCP Enrichment Server\nExposes DevOps enrichment as MCP tools at the MCP Server Trigger endpoint (path `devops`). Any MCP client (Claude Code, an engineer's agent) can call: **search_infra_docs** (team standards from Pinecone `devops-kb`) and **get_pr_diff** (raw diff of a GitHub PR).\n\n**Auth:** None for the demo — switch to Bearer before exposing externally. **Wire-up:** OpenAI + Pinecone on search; GitHub credential on the PR-diff tool.",
+        "height": 238,
+        "width": 900,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: MCP",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -272
+      ]
+    },
+    {
+      "parameters": {
+        "path": "devops"
+      },
+      "id": "mcp_trigger",
+      "name": "DevOps MCP",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -16
+      ],
+      "webhookId": "e436ec58-8ed2-4941-83d3-57cc4a20e58e"
+    },
+    {
+      "parameters": {
+        "content": "### Enrichment tools\n`search_infra_docs` = semantic search over the infra-standards corpus (Pinecone `devops-kb`, same index the PR reviewer uses). `get_pr_diff` = fetch the raw diff of a GitHub pull request.\n\nEmbeddings: text-embedding-3-small @ 1024 (must match devops-kb).",
+        "height": 534,
+        "width": 900,
+        "color": 5
+      },
+      "id": "sticky_tools",
+      "name": "Sticky: Tools",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the team's engineering and infrastructure standards (tagging, encryption, security, destructive-change, naming, IAM, cost) for guidance relevant to a change or question.",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "devops-kb",
+          "cachedResultName": "devops-kb"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "search_infra_docs",
+      "name": "Search infra docs",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        352
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      },
+      "notes": "Select Pinecone credential. Retrieves from index devops-kb."
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "id": "infra_embeddings",
+      "name": "Infra Docs Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        528
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential. text-embedding-3-small @ 1024 to match devops-kb."
+    },
+    {
+      "parameters": {
+        "resource": "pullRequest",
+        "operation": "getDiff",
+        "pullRequestNumber": "={{ $fromAI('pr_number', 'The pull request number', 'number') }}",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $fromAI('owner', 'GitHub repository owner or org', 'string') }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $fromAI('repo', 'GitHub repository name', 'string') }}"
+        }
+      },
+      "id": "get_pr_diff",
+      "name": "get_pr_diff",
+      "type": "n8n-nodes-base.githubTool",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        416
+      ],
+      "webhookId": "6de3424e-33fb-44b5-a9fb-e3205de68767",
+      "credentials": {
+        "githubApi": {
+          "id": "NVmbTZ3qsmlwk6Ls",
+          "name": "GitHub account"
+        }
+      },
+      "notes": "Select GitHub credential (access token). Agent supplies owner/repo/PR number."
+    }
+  ],
+  "connections": {
+    "Search infra docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "DevOps MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Infra Docs Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search infra docs",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_pr_diff": {
+      "ai_tool": [
+        [
+          {
+            "node": "DevOps MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "zyp7cVplnCezN8OF",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 1,
+  "versionId": "1dab94b2-4394-4cd7-8507-0e63842667ca",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "peYCBUYHSMGDH7vA",
+  "isArchived": false,
+  "nodeGroups": []
+}
