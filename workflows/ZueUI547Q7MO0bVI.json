@@ -1,0 +1,497 @@
+{
+  "id": "ZueUI547Q7MO0bVI",
+  "name": "DocOps — RAG: Docs Q&A",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### DocOps demo — RAG pattern\nGround answers in a Google Drive docs corpus.\n\n**Ingestion:** new file in the watched folder → download (Google Docs auto-convert to PDF) → extract text → chunk + embed → upsert to Pinecone namespace `docops`.\n\n**Query:** Chat → agent retrieves from `docops` → answers with citations.\n\nReuses index `outreach-kb` + OpenAI embeddings, sharing the vector space with the KB seed.",
+        "height": 460,
+        "width": 320,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Ingestion — Drive folder → Pinecone\nOne linear path. The Download node converts Google Docs to PDF (native PDFs pass through untouched), so a single PDF extraction handles both. 'Build doc record' normalizes { text, source, file_id }, then the Vector Store chunks, embeds (OpenAI), and upserts into namespace `docops`.\n\n**Wire-up:** Google Drive credential on the trigger + download, OpenAI on Embeddings, Pinecone on the vector store, and set the folder on the trigger.",
+        "height": 748,
+        "width": 1296,
+        "color": 5
+      },
+      "id": "sticky_ingest",
+      "name": "Sticky: Ingestion",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_FOLDER_ID"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "trig_ingest",
+      "name": "DocOps Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -16
+      ],
+      "notes": "Select your Google Drive credential and set folderToWatch to the DocOps folder."
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "id": "dl_file",
+      "name": "Download file",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        320,
+        -16
+      ],
+      "notes": "Select Google Drive credential. Google Docs auto-convert to PDF; other files download as-is."
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "extract_pdf",
+      "name": "Extract text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "text",
+              "type": "string",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "id": "a2",
+              "name": "source",
+              "type": "string",
+              "value": "={{ $('DocOps Drive Trigger').item.json.name }}"
+            },
+            {
+              "id": "a3",
+              "name": "file_id",
+              "type": "string",
+              "value": "={{ $('DocOps Drive Trigger').item.json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "build_doc",
+      "name": "Build doc record",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "outreach-kb",
+          "cachedResultName": "outreach-kb"
+        },
+        "options": {
+          "pineconeNamespace": "docops"
+        }
+      },
+      "id": "upsert",
+      "name": "Upsert to Pinecone (docops)",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        -16
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      },
+      "notes": "Select Pinecone credential. Index outreach-kb, namespace docops."
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "embeddings",
+      "name": "Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        224
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential. Must match the KB seed's embedding model so dimensions align with index outreach-kb."
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $json.source }}"
+              },
+              {
+                "name": "file_id",
+                "value": "={{ $json.file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "loader",
+      "name": "Docs Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "splitter",
+      "name": "Split text",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Query — Chat → agent → cited answer\nChat Trigger powers the canvas chat tester. The agent answers ONLY from the 'Search DocOps docs' tool (Pinecone retrieve on namespace `docops`) and cites the `source` file. Pick the OpenAI chat model + credential, and the same embedding model as ingestion.\n\n**Video beat:** ask something only in the docs → grounded answer + Sources line.",
+        "height": 784,
+        "width": 900,
+        "color": 6
+      },
+      "id": "sticky_query",
+      "name": "Sticky: Query",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "chat_trigger",
+      "name": "Chat: ask the docs",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        80,
+        752
+      ],
+      "webhookId": "f2aae88e-fb6c-4a57-85af-ca72270388f2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are the DocOps documentation assistant. Answer questions ONLY using the 'Search DocOps docs' tool, which retrieves passages from the team's Google Drive documentation. If the retrieved content does not contain the answer, say you don't know rather than guessing. Respond in concise markdown, and always end with a 'Sources:' line listing the `source` file name(s) of the chunks you used."
+        }
+      },
+      "id": "qa_agent",
+      "name": "Docs Q&A Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        352,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "chat_model",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        976
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential and a chat model (e.g. gpt-4o)."
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the DocOps documentation corpus (the team's Google Drive docs) for passages relevant to the user's question. Pass a natural-language query; returns the most relevant document chunks with their source file names.",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "outreach-kb",
+          "cachedResultName": "outreach-kb"
+        },
+        "topK": 5,
+        "options": {
+          "pineconeNamespace": "docops"
+        }
+      },
+      "id": "kb_tool",
+      "name": "Search DocOps docs",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        544,
+        976
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      },
+      "notes": "Select Pinecone credential. Retrieves from index outreach-kb, namespace docops."
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "query_embeddings",
+      "name": "Query Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        1168
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential. Same embedding model as ingestion."
+    }
+  ],
+  "connections": {
+    "DocOps Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract text": {
+      "main": [
+        [
+          {
+            "node": "Build doc record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build doc record": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Pinecone (docops)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Upsert to Pinecone (docops)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docs Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Upsert to Pinecone (docops)",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split text": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Docs Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat: ask the docs": {
+      "main": [
+        [
+          {
+            "node": "Docs Q&A Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Docs Q&A Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search DocOps docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Docs Q&A Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search DocOps docs",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "redactionPolicy": "non-manual",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "f2ed7d68-c2e8-4861-8393-594c1fc616a1",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "WUsyDwvHKtAbcamV",
+  "isArchived": false,
+  "nodeGroups": []
+}

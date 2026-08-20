@@ -1,0 +1,377 @@
+{
+  "id": "wADTZS9s6gZG1zbJ",
+  "name": "DocOps — MCP: Docs Sync Tool",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### DocOps MCP Server\nExposes docs tools at the MCP Server Trigger endpoint (path `docops`). Any MCP client (Claude Code, another n8n agent via MCP Client Tool) can call: search_docs, list_docs, create_doc, get_doc.\n\n**Auth:** set to None for the demo. Switch to **Bearer Auth** + add a credential before exposing externally (mirror the Outreach MCP Server).",
+        "height": 356,
+        "width": 900,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: MCP",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "path": "docops"
+      },
+      "id": "mcp_trigger",
+      "name": "DocOps MCP",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -32
+      ],
+      "webhookId": "442da97b-301b-4078-8d28-f37f2a739180"
+    },
+    {
+      "parameters": {
+        "content": "### Docs tool suite\n`search_docs` = semantic search over the Pinecone `docops` namespace (the RAG corpus). `list_docs` / `create_doc` / `get_doc` = Drive CRUD via the 'Tool: DocOps Drive ops' sub-workflow.\n\n**Wire-up:** OpenAI + Pinecone creds on search; Google Drive cred + folder inside the sub-workflow.",
+        "height": 512,
+        "width": 900,
+        "color": 5
+      },
+      "id": "sticky_tools",
+      "name": "Sticky: Tools",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Semantic search over the DocOps documentation corpus (the team's Google Drive docs, indexed in Pinecone). Pass a natural-language query; returns the most relevant document chunks with their source file names.",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "outreach-kb",
+          "cachedResultName": "outreach-kb"
+        },
+        "topK": 5,
+        "options": {
+          "pineconeNamespace": "docops"
+        }
+      },
+      "id": "search_docs",
+      "name": "Search docs",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        336
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      },
+      "notes": "Select Pinecone credential. Retrieves from index outreach-kb, namespace docops."
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "search_embeddings",
+      "name": "Search Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        496
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential. Same embedding model as the RAG ingestion."
+    },
+    {
+      "parameters": {
+        "description": "List the documents in the DocOps Google Drive folder. No input needed. Returns file names and ids.",
+        "workflowId": {
+          "__rl": true,
+          "value": "E6zhIfDdJvknOIZq",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/E6zhIfDdJvknOIZq",
+          "cachedResultName": "KR1 — Tool: DocOps Drive ops"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "list",
+            "name": "",
+            "content": "",
+            "file_id": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "id": "list_docs",
+      "name": "List docs",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Create a new document from text in the DocOps Google Drive folder. Inputs: 'name' (file name) and 'content' (the doc body). Side effect: writes a real file to Drive. Returns the new file id and name.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "E6zhIfDdJvknOIZq",
+          "cachedResultName": "Tool: DocOps Drive ops"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "create",
+            "name": "={{ $fromAI('name', 'The file name for the new document', 'string') }}",
+            "content": "={{ $fromAI('content', 'The full text content of the new document', 'string') }}",
+            "file_id": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "id": "create_doc",
+      "name": "Create doc",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Download a document's raw content from Google Drive by its file id. Input: 'file_id'. Use list_docs first to find the id. Returns the file content.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "E6zhIfDdJvknOIZq",
+          "cachedResultName": "Tool: DocOps Drive ops"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "get",
+            "name": "",
+            "content": "",
+            "file_id": "={{ $fromAI('file_id', 'The Google Drive file id to download', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "id": "get_doc",
+      "name": "Get doc",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        384
+      ]
+    }
+  ],
+  "connections": {
+    "Search docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "DocOps MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search docs",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "DocOps MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create doc": {
+      "ai_tool": [
+        [
+          {
+            "node": "DocOps MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get doc": {
+      "ai_tool": [
+        [
+          {
+            "node": "DocOps MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "redactionPolicy": "non-manual",
+    "errorWorkflow": "zyp7cVplnCezN8OF",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 1,
+  "versionId": "5b7e1029-5a5d-4b99-8a5d-9d04f946c828",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "WUsyDwvHKtAbcamV",
+  "isArchived": false,
+  "nodeGroups": []
+}
