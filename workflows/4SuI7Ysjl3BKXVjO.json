@@ -1,0 +1,186 @@
+{
+  "id": "4SuI7Ysjl3BKXVjO",
+  "name": "SecOps: Seed IR runbooks",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### SecOps RAG — seed IR runbooks\nUpserts curated incident-response runbooks into Pinecone (index `outreach-kb`, namespace `secops`) so the Alert Triage agent's `search_runbooks` tool returns real procedures + severity guidance.\n\nRun once (and re-run after editing the runbooks). `clearNamespace` wipes + reseeds each run.\n\n**Wire-up:** OpenAI + Pinecone credentials (same ones the triage workflow uses). Then run, and re-test the triage — it'll cite these runbooks.",
+        "height": 420,
+        "width": 320,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -64
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "trig",
+      "name": "Run seed",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const docs = [\n  { source: 'Runbook: Phishing Email Triage', text: 'Phishing email triage. Trigger: user- or gateway-reported suspicious email/URL/attachment. Steps: verify sender and SPF/DKIM/DMARC; detonate URLs with urlscan.io; check indicators against threat intel (MISP); look for credential-harvesting pages. Severity: medium by default; raise to high if users clicked or submitted credentials, or the domain is confirmed malicious. Actions: quarantine and purge the email from all mailboxes, block the domain/URL at gateway and proxy, sweep for other recipients, and force password reset + session revocation for anyone who submitted credentials.' },\n  { source: 'Runbook: Ransomware Active Incident', text: 'Ransomware active incident. Trigger: EDR confirms active encryption or ransomware behavior on one or more hosts. Severity: CRITICAL, especially when multiple hosts, a domain controller, or data exfiltration are involved. Actions: isolate affected hosts via EDR (do NOT power off - preserve memory), block C2 domains/IPs, preserve forensic evidence (memory + disk images), rotate/disable privileged and domain credentials from a trusted system, verify and isolate backups (do not restore until cleared), and immediately engage the IR team, leadership, and legal.' },\n  { source: 'Runbook: Malicious IP / C2 Beacon', text: 'Malicious IP or C2 beacon. Trigger: outbound connection to a known-malicious IP/domain or Cobalt Strike beaconing detected. Steps: enrich the indicator with threat intel (MISP) and passive DNS; confirm the beaconing pattern in EDR/network logs. Severity: high when beaconing is confirmed, critical if on a critical asset or with lateral movement. Actions: isolate the host, block the IOC at perimeter and DNS, hunt for additional beacons and lateral movement, and identify the initial access vector.' },\n  { source: 'Runbook: Account Compromise', text: 'Account compromise. Trigger: impossible-travel logins, MFA fatigue, or anomalous authentication. Severity: high, critical for privileged or domain accounts. Actions: disable the account, revoke active sessions and refresh/OAuth tokens, force a password reset, reset MFA methods, and review authentication and audit logs for scope and lateral movement.' },\n  { source: 'Runbook: Malware / EDR Detection', text: 'Malware detection from EDR. Trigger: endpoint protection flags malware on a host. Steps: quarantine the host, collect the sample and hashes, check reputation (VirusTotal/MISP), and determine scope. Severity: medium for a single contained low-value host; high or critical when multiple hosts or a critical asset are affected. Actions: remediate or reimage the host, block the hash/IOCs fleet-wide, and hunt for related infections.' },\n  { source: 'Runbook: Severity Classification Matrix', text: 'Severity classification matrix. LOW: single low-value asset, no confirmed compromise, easily contained. MEDIUM: suspicious but unconfirmed activity, limited scope, no sensitive data. HIGH: confirmed compromise, sensitive data at risk, or spread across several hosts. CRITICAL: active, widespread incident - ransomware encryption, domain controller or critical-infrastructure compromise, or active data exfiltration. When evidence is mixed or unavailable, choose the more conservative (higher) severity.' },\n  { source: 'Runbook: Escalation Criteria', text: 'Escalation criteria. Open a TheHive case and escalate to Tier-2/IR when any of these are true: confirmed compromise, multiple affected hosts, a privileged or domain-controller account involved, data exfiltration, or any ransomware activity. For low-risk, unconfirmed, single-host events with no sensitive data, auto-close with documentation and monitoring. Always preserve evidence and record actions in the ticket.' }\n];\nreturn docs.map((d) => ({ json: { text: d.text, source: d.source }, pairedItem: { item: 0 } }));"
+      },
+      "id": "code",
+      "name": "IR runbook docs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "secops-kb",
+          "cachedResultName": "secops-kb"
+        },
+        "options": {
+          "clearNamespace": true
+        }
+      },
+      "id": "vs",
+      "name": "Seed IR runbooks (secops)",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        48
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      },
+      "notes": "Select Pinecone credential. Index outreach-kb, namespace secops."
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "id": "emb",
+      "name": "Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        272
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      },
+      "notes": "Select OpenAI credential. MUST be the same embedding model the triage's Search runbooks uses."
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $json.source }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "loader",
+      "name": "Runbook Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        272
+      ]
+    }
+  ],
+  "connections": {
+    "Run seed": {
+      "main": [
+        [
+          {
+            "node": "IR runbook docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IR runbook docs": {
+      "main": [
+        [
+          {
+            "node": "Seed IR runbooks (secops)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Seed IR runbooks (secops)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Runbook Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Seed IR runbooks (secops)",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "6394e7fc-1182-42a6-97cf-25c72dfcaf8c",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "d2viq1Z0dhhc5B8G",
+  "isArchived": false,
+  "nodeGroups": []
+}

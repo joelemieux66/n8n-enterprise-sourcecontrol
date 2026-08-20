@@ -1,0 +1,275 @@
+{
+  "id": "9x0WXVgpMJZB2D99",
+  "name": "SecOps — Response Planner (tool)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### Response Planner (sub-workflow tool)\nSecond agent. Called by the orchestrator only for confirmed higher-severity alerts. Grounds a containment/eradication plan in the IR runbooks (RAG) and returns it structured. Read-only — proposes actions, does not execute them (the human approves + the orchestrator writes to TheHive).\n\n**Inputs:** verdict, severity, alert_type, indicator, rationale\n**Output:** { case_severity, containment_steps, eradication_steps, notifications, summary }",
+        "height": 340,
+        "width": 440,
+        "color": 6
+      },
+      "id": "sticky_b",
+      "name": "Sticky: About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "verdict",
+              "type": "string"
+            },
+            {
+              "name": "severity",
+              "type": "string"
+            },
+            {
+              "name": "alert_type",
+              "type": "string"
+            },
+            {
+              "name": "indicator",
+              "type": "string"
+            },
+            {
+              "name": "rationale",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "trigger_b",
+      "name": "When called by orchestrator",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Build an incident response plan for this triaged alert.\n\nAlert: {{ $json.alert_type }}\nIndicator: {{ $json.indicator }}\nVerdict: {{ $json.verdict }}  ·  Severity: {{ $json.severity }}\nTriage rationale: {{ $json.rationale }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a SOC Tier-2 incident responder. Given a triaged alert, consult the incident-response runbooks (search_runbooks) and produce a concrete, ordered response plan grounded in those runbooks. Split actions into containment (stop the bleeding) and eradication (remove the threat). List who must be notified. Cite the runbook you followed in the summary. Propose actions only — do NOT assume anything has been executed; a human will approve and the system will act. Keep steps specific and actionable."
+        }
+      },
+      "id": "resp_b",
+      "name": "Response Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        120,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "model_b",
+      "name": "Response Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        400
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the incident-response runbooks for the correct containment and eradication procedure for this kind of incident.",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "secops-kb",
+          "cachedResultName": "secops-kb"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "tool_runbooks_b",
+      "name": "Search runbooks",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        400
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "bdIGPcclXfSxFgf7",
+          "name": "Pinecone"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "id": "emb_b",
+      "name": "Runbook Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        580
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"case_severity\": { \"type\": \"string\", \"enum\": [\"low\", \"medium\", \"high\", \"critical\"] },\n    \"containment_steps\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"eradication_steps\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"notifications\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"summary\": { \"type\": \"string\" }\n  },\n  \"required\": [\"case_severity\", \"containment_steps\", \"summary\"]\n}",
+        "autoFix": true
+      },
+      "id": "parser_b",
+      "name": "Response plan",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "fixer_b",
+      "name": "Fixer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        580
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "KBLGEFMAR7Y26lSV",
+          "name": "Personal"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When called by orchestrator": {
+      "main": [
+        [
+          {
+            "node": "Response Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Response Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search runbooks": {
+      "ai_tool": [
+        [
+          {
+            "node": "Response Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Runbook Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search runbooks",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response plan": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Response Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Response plan",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": false,
+    "callerPolicy": "any"
+  },
+  "triggerCount": 0,
+  "versionId": "e081a161-da2f-45fc-88fb-d099b39458b2",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "d2viq1Z0dhhc5B8G",
+  "isArchived": false,
+  "nodeGroups": []
+}

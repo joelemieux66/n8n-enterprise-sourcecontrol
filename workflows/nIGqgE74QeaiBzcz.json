@@ -1,0 +1,212 @@
+{
+  "id": "nIGqgE74QeaiBzcz",
+  "name": "SecOps — Eval: Triage accuracy",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### Eval harness — triage accuracy\nRuns the labeled dataset (Data Table: *SecOps triage eval set*) through the **Triage Agent** and scores each case against ground truth.\n\n**Metrics (per run, in the Evaluations tab):**\n- `verdict_accuracy` — 1 if the agent's verdict matches the label\n- `severity_accuracy` — 1 if severity matches\n\nRun from the canvas to regression-test the agent whenever you change its prompt, model, or runbooks.",
+        "height": 368,
+        "width": 440,
+        "color": 4
+      },
+      "id": "sticky_d",
+      "name": "Sticky: About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "6yVUcRyemEsFpAJy",
+          "mode": "list",
+          "cachedResultName": "SecOps triage eval set",
+          "cachedResultUrl": "/projects/W8qK4dCyGa2lOmi7/datatables/6yVUcRyemEsFpAJy"
+        }
+      },
+      "id": "eval_trigger",
+      "name": "Fetch dataset row",
+      "type": "n8n-nodes-base.evaluationTrigger",
+      "typeVersion": 4.7,
+      "position": [
+        -208,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vjTY6ysgqnODjM2j",
+          "cachedResultName": "SecOps — Triage Agent (tool)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "alert_type": "={{ $json.alert_type }}",
+            "indicator": "={{ $json.indicator }}",
+            "source": "={{ $json.source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "alert_type",
+              "displayName": "alert_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "indicator",
+              "displayName": "indicator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "run_agent",
+      "name": "Run Triage Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "6yVUcRyemEsFpAJy"
+        },
+        "outputs": {
+          "values": [
+            {
+              "outputName": "actual_verdict",
+              "outputValue": "={{ $json.output.verdict }}"
+            },
+            {
+              "outputName": "actual_severity",
+              "outputValue": "={{ $json.output.severity }}"
+            }
+          ]
+        }
+      },
+      "id": "record_outputs",
+      "name": "Record outputs",
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        320,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "customMetrics",
+        "metrics": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "verdict_accuracy",
+              "value": "={{ $('Run Triage Agent').item.json.output.verdict === $('Fetch dataset row').item.json.expected_verdict ? 1 : 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "m2",
+              "name": "severity_accuracy",
+              "value": "={{ $('Run Triage Agent').item.json.output.severity === $('Fetch dataset row').item.json.expected_severity ? 1 : 0 }}",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "score",
+      "name": "Score accuracy",
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        592,
+        64
+      ]
+    }
+  ],
+  "connections": {
+    "Fetch dataset row": {
+      "main": [
+        [
+          {
+            "node": "Run Triage Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Triage Agent": {
+      "main": [
+        [
+          {
+            "node": "Record outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record outputs": {
+      "main": [
+        [
+          {
+            "node": "Score accuracy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "01a7c522-9f43-472d-ac8a-8c4378d38504",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "d2viq1Z0dhhc5B8G",
+  "isArchived": false,
+  "nodeGroups": []
+}

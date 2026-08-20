@@ -1,0 +1,16 @@
+{
+  "id": "TCvP75mJPL0mo8BL",
+  "name": "Version Control",
+  "icon": {
+    "type": "icon",
+    "value": "layers"
+  },
+  "description": "",
+  "type": "team",
+  "owner": {
+    "type": "team",
+    "teamId": "TCvP75mJPL0mo8BL",
+    "teamName": "Version Control"
+  },
+  "variableStubs": []
+}
