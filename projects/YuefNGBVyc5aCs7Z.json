@@ -1,0 +1,16 @@
+{
+  "id": "YuefNGBVyc5aCs7Z",
+  "name": "Prospect Demos",
+  "icon": {
+    "type": "icon",
+    "value": "layers"
+  },
+  "description": "",
+  "type": "team",
+  "owner": {
+    "type": "team",
+    "teamId": "YuefNGBVyc5aCs7Z",
+    "teamName": "Prospect Demos"
+  },
+  "variableStubs": []
+}

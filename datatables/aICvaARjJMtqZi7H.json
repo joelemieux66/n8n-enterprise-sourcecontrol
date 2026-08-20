@@ -1,0 +1,116 @@
+{
+  "id": "aICvaARjJMtqZi7H",
+  "name": "enterprise_use_cases",
+  "columns": [
+    {
+      "id": "7tM11RnTlH9uqwDa",
+      "name": "useCaseId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "00PHk1179v9xBttb",
+      "name": "category",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "RH4zQBR2kAjx5zoy",
+      "name": "department",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "UH9xBzRbUjQKUifP",
+      "name": "integrations_object",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "btUNdfQPf1pB3UHk",
+      "name": "summary",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "VQOet3SaePn2LMu3",
+      "name": "businessProblem",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "8XH6CLWZOpGM6Zp1",
+      "name": "impact",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "fxuZhbe5oak9WAEv",
+      "name": "industry",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "cjyBFDiwTGCCW3KE",
+      "name": "arrSegment",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "JDCbhEbEs9fH7inQ",
+      "name": "customerLabel",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "rGljDGShoFQefoCn",
+      "name": "customerRef",
+      "type": "string",
+      "index": 10
+    },
+    {
+      "id": "2EuiaaSeUVFMQKaF",
+      "name": "themeId",
+      "type": "string",
+      "index": 11
+    },
+    {
+      "id": "qKpiUg6FnXkwqVTj",
+      "name": "themeTitle",
+      "type": "string",
+      "index": 12
+    },
+    {
+      "id": "sEyYbz4p8KuQBC7O",
+      "name": "themeDescription",
+      "type": "string",
+      "index": 13
+    },
+    {
+      "id": "XagSR04pJXwAd2BA",
+      "name": "customerCount",
+      "type": "number",
+      "index": 14
+    },
+    {
+      "id": "shuxWJcwJfkcvYc7",
+      "name": "embedding_object",
+      "type": "string",
+      "index": 15
+    },
+    {
+      "id": "aUmeiwqnMIT7EEmK",
+      "name": "contentHash",
+      "type": "string",
+      "index": 16
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-07-30T15:23:09.681Z",
+  "updatedAt": "2026-07-30T18:07:14.480Z"
+}

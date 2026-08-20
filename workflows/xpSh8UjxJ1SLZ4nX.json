@@ -1,0 +1,447 @@
+{
+  "id": "xpSh8UjxJ1SLZ4nX",
+  "name": "DevOps — Terraform Plan Review (multi-agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### DevOps demo — Terraform plan review\nAn AI platform-engineer reviews a Terraform plan BEFORE it's applied, grounded in the team's infra standards.\n\n**Flow:** plan (JSON/summary) in → Plan Reviewer agent → grounds via `search_infra_docs` (Pinecone `devops-kb`) → structured verdict (approve / needs_changes / block + risk + destructive changes + findings) → gate → approve queues apply (behind human approval) / else request changes → review report.\n\n**Plan-JSON-in:** post a `terraform show -json` (or a summary) to the webhook; a risky sample is the default so it runs with no live TF/AWS.\n\n**Wire-up:** OpenAI + Pinecone creds. Apply step is representational (no live backend); wire TFC + Slack HITL for real applies.",
+        "height": 560,
+        "width": 400,
+        "color": 4
+      },
+      "id": "sticky_overview",
+      "name": "Sticky: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tf-plan-review",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Terraform plan received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        64
+      ],
+      "webhookId": "456d3667-333b-485b-9299-0a0a6df6f92f",
+      "notes": "POST a plan to /webhook/tf-plan-review with body { plan: '<terraform show -json or summary>' }. Defaults to a risky sample if none provided."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "p1",
+              "name": "plan",
+              "type": "string",
+              "value": "={{ $json.body?.plan || 'Terraform plan summary:\\n- aws_s3_bucket.public_assets: CREATE (acl=public-read, no server-side encryption, no tags)\\n- aws_db_instance.prod: REPLACE (engine_version 13 -> 15 forces replacement; deletion_protection=false; skip_final_snapshot=true)\\n- aws_security_group_rule.ssh_ingress: CREATE (ingress tcp/22 from 0.0.0.0/0)\\n- aws_instance.web: UPDATE (instance_type t3.medium -> t3.large; adds required Owner/Env tags)' }}"
+            },
+            {
+              "id": "p2",
+              "name": "repo",
+              "type": "string",
+              "value": "={{ $json.body?.repo || 'infra/terraform-prod' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "plan",
+      "name": "Incoming plan",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        64
+      ],
+      "notes": "Reads the posted plan, or uses a risky sample changeset by default."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review this Terraform plan for repo {{ $json.repo }} before it is applied.\n\n{{ $json.plan }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a senior platform engineer reviewing a Terraform plan before apply. FIRST call search_infra_docs to ground your review in the team's infrastructure standards (tagging, encryption, public-exposure, destructive-change, and least-privilege policies). Then assess the plan for: destructive changes (delete/replace, especially data stores like RDS), security issues (public S3, ingress from 0.0.0.0/0, missing encryption), policy/tagging violations, and cost concerns. Decide approve / needs_changes / block. Be conservative: BLOCK on data-loss risk (e.g. RDS replace without final snapshot) or public exposure. Cite the standard you applied in each finding."
+        }
+      },
+      "id": "reviewer",
+      "name": "Plan Reviewer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        432,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "reviewer_model",
+      "name": "Reviewer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        320
+      ],
+      "notes": "Select OpenAI credential + chat model (e.g. gpt-4o)."
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the team's infrastructure standards and policies (tagging, encryption, security, destructive-change, naming, cost) for guidance relevant to this Terraform change.",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "devops-kb",
+          "cachedResultName": "devops-kb"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "infra_docs",
+      "name": "Search infra docs",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        320
+      ],
+      "notes": "Select Pinecone credential. Retrieves infra standards from index devops-kb."
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "id": "infra_embeddings",
+      "name": "Infra Docs Embeddings (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        528
+      ],
+      "notes": "Select OpenAI credential. text-embedding-3-small @ 1024 to match devops-kb."
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"decision\": { \"type\": \"string\", \"enum\": [\"approve\", \"needs_changes\", \"block\"] },\n    \"risk\": { \"type\": \"string\", \"enum\": [\"low\", \"medium\", \"high\", \"critical\"] },\n    \"destructive_changes\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"findings\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"summary\": { \"type\": \"string\" }\n  },\n  \"required\": [\"decision\", \"risk\", \"findings\", \"summary\"]\n}",
+        "autoFix": true
+      },
+      "id": "verdict_parser",
+      "name": "Review verdict",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "fixer_model",
+      "name": "Fixer Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        320
+      ],
+      "notes": "Coding-capable model to repair malformed JSON."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.output.decision }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "gate",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1",
+              "name": "disposition",
+              "type": "string",
+              "value": "APPROVED — queued for apply (pending human sign-off). Wire Terraform Cloud + Slack HITL here for a real apply."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "approve",
+      "name": "Approve & queue apply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        -64
+      ],
+      "notes": "Where a real 'terraform apply' (TFC run) would fire, behind a human-approval (Slack HITL) gate."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2",
+              "name": "disposition",
+              "type": "string",
+              "value": "CHANGES REQUESTED — apply blocked; post findings as a PR review comment."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "changes",
+      "name": "Request changes",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "o1",
+              "name": "output",
+              "type": "string",
+              "value": "=## Terraform Plan Review — {{ $('Incoming plan').item.json.repo }}\n\n**Decision:** {{ $('Plan Reviewer').item.json.output.decision }}  ·  **Risk:** {{ $('Plan Reviewer').item.json.output.risk }}\n\n{{ $('Plan Reviewer').item.json.output.summary }}\n\n**Destructive changes:**\n- {{ ($('Plan Reviewer').item.json.output.destructive_changes || ['none']).join('\\n- ') }}\n\n**Findings:**\n- {{ $('Plan Reviewer').item.json.output.findings.join('\\n- ') }}\n\n**Disposition:** {{ $json.disposition }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "report",
+      "name": "Review report",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1392,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Plan → Review → gate\nPlan Reviewer grounds in infra standards (search_infra_docs) → structured verdict → approve queues apply (human-gated) / else request changes. Read-only review; no infra is mutated.",
+        "height": 130,
+        "width": 700,
+        "color": 5
+      },
+      "id": "sticky_pipe",
+      "name": "Sticky: Pipeline",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -96
+      ]
+    }
+  ],
+  "connections": {
+    "Terraform plan received": {
+      "main": [
+        [
+          {
+            "node": "Incoming plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incoming plan": {
+      "main": [
+        [
+          {
+            "node": "Plan Reviewer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan Reviewer": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Approve & queue apply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve & queue apply": {
+      "main": [
+        [
+          {
+            "node": "Review report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request changes": {
+      "main": [
+        [
+          {
+            "node": "Review report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Plan Reviewer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search infra docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Plan Reviewer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Infra Docs Embeddings (OpenAI)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search infra docs",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review verdict": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Plan Reviewer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixer Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Review verdict",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "8f9128ec-f4b9-420a-90d0-8a9ed0beeb73",
+  "owner": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "parentFolderId": "peYCBUYHSMGDH7vA",
+  "isArchived": true,
+  "nodeGroups": []
+}

@@ -1,0 +1,38 @@
+{
+  "id": "fAV265kBSgcUniGT",
+  "name": "customer_ref_map",
+  "columns": [
+    {
+      "id": "mIyfdKPxy0oD2ZHJ",
+      "name": "companyId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "5JJ9a57o06hStZqC",
+      "name": "customerRef",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "ppAtYgngUkk93adR",
+      "name": "industry",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "RNZCudh4PrDFEXk7",
+      "name": "arrSegment",
+      "type": "string",
+      "index": 3
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-07-30T15:23:24.684Z",
+  "updatedAt": "2026-07-30T15:23:24.684Z"
+}

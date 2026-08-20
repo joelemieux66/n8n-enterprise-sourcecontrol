@@ -1,0 +1,16 @@
+{
+  "id": "LDZbeEPHll7aysDT",
+  "name": "Testing",
+  "icon": {
+    "type": "icon",
+    "value": "layers"
+  },
+  "description": "",
+  "type": "team",
+  "owner": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "variableStubs": []
+}

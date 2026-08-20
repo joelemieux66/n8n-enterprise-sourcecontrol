@@ -1,0 +1,16 @@
+{
+  "id": "oVy6R3y02YrhoDi2",
+  "name": "Self Host",
+  "type": "ollamaApi",
+  "data": {
+    "baseUrl": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "isGlobal": false,
+  "isResolvable": false,
+  "resolvableAllowFallback": false
+}

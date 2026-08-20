@@ -1,0 +1,16 @@
+{
+  "id": "dQQIM9H7QiZJno60",
+  "name": "urlscan.io account",
+  "type": "urlScanIoApi",
+  "data": {
+    "apiKey": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "isGlobal": false,
+  "isResolvable": false,
+  "resolvableAllowFallback": false
+}

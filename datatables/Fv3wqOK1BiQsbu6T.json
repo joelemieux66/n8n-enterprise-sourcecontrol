@@ -1,0 +1,38 @@
+{
+  "id": "Fv3wqOK1BiQsbu6T",
+  "name": "enterprise_use_case_sync_state",
+  "columns": [
+    {
+      "id": "E1WCJdWw47eGQ0pP",
+      "name": "useCaseId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "kh8BtLqP39i5I4mf",
+      "name": "contentHash",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "8PEBvtR6ODsOD25V",
+      "name": "leakScanStatus",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "RWnQ1SIztoFpDkuo",
+      "name": "lastCheckedAt",
+      "type": "date",
+      "index": 3
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-07-30T15:23:12.229Z",
+  "updatedAt": "2026-07-30T15:23:12.229Z"
+}

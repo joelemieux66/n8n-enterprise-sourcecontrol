@@ -1,0 +1,17 @@
+{
+  "id": "CNAE9aJLjGEHE2iZ",
+  "name": "Sheets",
+  "type": "googleSheetsOAuth2Api",
+  "data": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "FGee2Rffy5CZODVa",
+    "teamName": "Onboarding - SDR Assistant"
+  },
+  "isGlobal": false,
+  "isResolvable": false,
+  "resolvableAllowFallback": false
+}

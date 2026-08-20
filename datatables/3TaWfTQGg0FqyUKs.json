@@ -1,0 +1,37 @@
+{
+  "id": "3TaWfTQGg0FqyUKs",
+  "name": "session_research",
+  "columns": [
+    {
+      "id": "1nVbBdOhIZL3sqTD",
+      "name": "sessionId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "rARfLdIeeMu5FtrS",
+      "name": "company",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "O4nij1F4KLdChnlM",
+      "name": "companyKey",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "PLjU0UnwsEDvqwza",
+      "name": "brief",
+      "type": "string",
+      "index": 3
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "FGee2Rffy5CZODVa",
+    "teamName": "Onboarding - SDR Assistant"
+  },
+  "createdAt": "2026-06-30T13:55:10.030Z",
+  "updatedAt": "2026-07-23T14:36:54.517Z"
+}
