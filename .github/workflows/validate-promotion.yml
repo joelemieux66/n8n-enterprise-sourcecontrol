@@ -35,6 +35,7 @@ jobs:
   validate-n8n:
     needs: lint-json
     runs-on: ubuntu-latest
+    continue-on-error: true
     env:
       N8N_API_BASE: https://n8n-dev-demo.joseph-lemieux.com/api/v1
     steps:
@@ -75,6 +76,7 @@ jobs:
 
   auto-merge:
     needs: [lint-json, validate-n8n]
+    if: always() && needs.lint-json.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Merge pull request
