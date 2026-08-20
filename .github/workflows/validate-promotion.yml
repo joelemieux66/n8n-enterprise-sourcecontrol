@@ -14,13 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Validate workflow JSON structure
         run: |
           set -e
-          shopt -s nullglob
-          files=(workflows/*.json)
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- 'workflows/*.json')
           if [ ${#files[@]} -eq 0 ]; then
-            echo "No workflow JSON files found under workflows/ - nothing to lint."
+            echo "No changed workflow JSON files - nothing to lint."
             exit 0
           fi
           for f in "${files[@]}"; do
@@ -38,13 +39,14 @@ jobs:
       N8N_API_BASE: https://n8n-dev-demo.joseph-lemieux.com/api/v1
     steps:
       - uses: actions/checkout@v4
-      - name: Import each workflow as a scratch draft to validate against live n8n
+        with:
+          fetch-depth: 0
+      - name: Import each changed workflow as a scratch draft to validate against live n8n
         run: |
           set -e
-          shopt -s nullglob
-          files=(workflows/*.json)
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- 'workflows/*.json')
           if [ ${#files[@]} -eq 0 ]; then
-            echo "No workflow JSON files found under workflows/ - nothing to validate."
+            echo "No changed workflow JSON files - nothing to validate."
             exit 0
           fi
           fail=0
