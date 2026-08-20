@@ -13,10 +13,10 @@ This repo demonstrates n8n's Enterprise **Source Control & Environments** featur
 ```
 ┌──────────┐   push    ┌─────────────┐   PR + merge   ┌─────────┐
 │   Dev    │ ────────► │  (feature/  │ ─────────────► │ staging │
-│ instance │           │   dev branch)│  ─── webhook ─►│ branch  │
-└──────────┘           └─────────────┘        │        └─────────┘
-                                               │             │
-                                               ▼             │ auto
+│ instance │           │  dev branch)│  ─── webhook ─►│ branch  │
+└──────────┘           └─────────────┘        │       └─────────┘
+                                │             │
+                                              ▼             │ auto
                                     GitHub PR Merge Webhook  │ pull
                                      (promotion pipeline)    ▼
                                                │      ┌──────────────┐
@@ -26,15 +26,15 @@ This repo demonstrates n8n's Enterprise **Source Control & Environments** featur
                                                │
                                                │   PR + merge   ┌──────┐
                                                └──────────────► │ main │
-                                                    webhook ───► │branch│
-                                                        │        └──────┘
+                                                    webhook ───►│branch│
+                                                        │       └──────┘
                                                         ▼ auto
                                                         pull
                                                         │
                                                         ▼
                                                  ┌──────────────┐
                                                  │     Prod     │
-                                                 │   instance    │
+                                                 │   instance   │
                                                  └──────────────┘
 ```
 
