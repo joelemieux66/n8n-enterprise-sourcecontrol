@@ -1,0 +1,179 @@
+name: Rollback workflow
+
+# One-click, audited rollback of a single n8n workflow.
+#
+# Run it from the Actions tab. The "plan" job always runs and is safe; the
+# "apply" job is bound to a GitHub Environment, so if you put required
+# reviewers on `prod` this pauses for approval before anything changes.
+#
+# Note the checkout order: the environment is mapped to a branch BEFORE the
+# checkout, so both jobs operate on the same tree. A dry run deliberately
+# refuses to switch branches, so planning from the default branch would
+# otherwise report a diff for the wrong environment.
+
+on:
+  workflow_dispatch:
+    inputs:
+      workflow:
+        description: 'Workflow name (exact) or n8n workflow ID'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        default: prod
+        type: choice
+        options: [dev, staging, prod]
+      target:
+        description: 'Restore to: "last-good", a commit SHA, or a tag (e.g. prod-2026-08-14)'
+        required: true
+        default: last-good
+        type: string
+      plan_only:
+        description: 'Plan only — show the diff and checks, change nothing'
+        required: false
+        default: false
+        type: boolean
+      backport:
+        description: 'Open a backport PR to dev so the bad version cannot be re-promoted'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: n8n-rollback-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.map.outputs.branch }}
+    steps:
+      - id: map
+        name: Map environment to branch
+        run: |
+          case "${{ inputs.environment }}" in
+            dev)     echo "branch=dev"     >> "$GITHUB_OUTPUT" ;;
+            staging) echo "branch=staging" >> "$GITHUB_OUTPUT" ;;
+            prod)    echo "branch=main"    >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.map.outputs.branch }}
+
+      - name: Dry run
+        env:
+          N8N_BASE_URL: ${{ vars.N8N_BASE_URL }}
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/n8n-rollback.sh \
+            --workflow "${{ inputs.workflow }}" \
+            --to "${{ inputs.target }}" \
+            --env "${{ inputs.environment }}" \
+            --dry-run | tee plan.txt
+
+      - name: Publish plan to summary
+        if: always()
+        run: |
+          {
+            echo "## Rollback plan — \`${{ inputs.workflow }}\` on \`${{ inputs.environment }}\`"
+            echo "Branch: \`${{ steps.map.outputs.branch }}\`"
+            echo '```'
+            cat plan.txt 2>/dev/null || echo "(plan failed — see logs)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: Apply
+    needs: plan
+    if: ${{ inputs.plan_only == false }}
+    runs-on: ubuntu-latest
+    # Bind to the GitHub Environment of the same name. Add required reviewers
+    # on `prod` and this job waits for a human before touching anything.
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.N8N_BASE_URL }}
+    outputs:
+      commit: ${{ steps.run.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.plan.outputs.branch }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "n8n-rollback-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+      - id: run
+        name: Roll back and pull
+        env:
+          N8N_BASE_URL: ${{ vars.N8N_BASE_URL }}
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/n8n-rollback.sh \
+            --workflow "${{ inputs.workflow }}" \
+            --to "${{ inputs.target }}" \
+            --env "${{ inputs.environment }}" \
+            --yes | tee apply.txt
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish result to summary
+        if: always()
+        run: |
+          {
+            echo "## Applied to \`${{ inputs.environment }}\`"
+            echo '```'
+            cat apply.txt 2>/dev/null || echo "(apply failed — see logs)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  backport:
+    name: Backport to dev
+    needs: apply
+    if: ${{ inputs.backport && inputs.environment != 'dev' && inputs.plan_only == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: dev
+
+      - name: Cherry-pick the rollback onto dev
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.apply.outputs.commit }}
+          WF: ${{ inputs.workflow }}
+          ENV_NAME: ${{ inputs.environment }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          git config user.name  "n8n-rollback-bot"
+          git config user.email "actions@users.noreply.github.com"
+          BR="backport/rollback-${SHA::7}"
+          git checkout -b "$BR"
+          if ! git cherry-pick "$SHA"; then
+            git cherry-pick --abort || true
+            echo "::warning::Cherry-pick conflicted — dev has diverged. Resolve manually."
+            exit 0
+          fi
+          git push origin "$BR"
+          printf '%s\n\n%s\n\n%s\n' \
+            "Rolled back \`$WF\` on **$ENV_NAME** in ${SHA::7}." \
+            "This backports the same change to \`dev\`. **Merge it.** Without this, the next promotion re-ships the version that was just rolled back." \
+            "Requested by @$ACTOR." > body.md
+          gh pr create \
+            --base dev --head "$BR" \
+            --title "Backport rollback of $WF to dev" \
+            --body-file body.md
