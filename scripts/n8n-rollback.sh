@@ -245,11 +245,22 @@ if [[ "$TARGET" == "last-good" ]]; then
     SHA="$c"; break
   done < <(git log --format=%H -- "$WF_FILE")
   if [[ -z "$SHA" ]]; then
-    say "${C_RED}No earlier version of '$WF_NAME' is eligible.${C_OFF}"
-    say "  Every prior version is either identical to what is live, or has already"
-    say "  been rolled back. This file has $(git log --oneline -- "$WF_FILE" | wc -l | tr -d ' ') commit(s) in its history."
-    say "  Pass an explicit SHA or tag with --to, or seed a change first:"
-    say "    ${C_DIM}./scripts/demo-seed-break.sh --workflow '$WF_NAME'${C_OFF}"
+    n_commits=$(git log --oneline -- "$WF_FILE" | wc -l | tr -d ' ')
+    if [[ "$n_commits" -le 1 ]]; then
+      # A workflow that only ever appeared once has no "before" to go back to.
+      say "${C_RED}'$WF_NAME' has no earlier version — it was added, not changed.${C_OFF}"
+      say "  Added in $(git log --format='%h  %s  (%an, %ar)' -- "$WF_FILE" | tail -1)"
+      say ""
+      say "  Undoing an addition means deleting the workflow, which this tool does not"
+      say "  do — deleting is not a rollback, and a forced pull would remove it from"
+      say "  the instance without asking. Remove the file and promote that as a normal"
+      say "  change if that is really what you want."
+    else
+      say "${C_RED}No earlier version of '$WF_NAME' is eligible.${C_OFF}"
+      say "  Every prior version is either identical to what is live, or has already"
+      say "  been rolled back. This file has $n_commits commit(s) in its history."
+      say "  Pass an explicit SHA or tag with --to."
+    fi
     exit 1
   fi
 else
