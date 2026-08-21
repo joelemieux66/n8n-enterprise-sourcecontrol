@@ -128,30 +128,53 @@ it on a call.
 
 ## The demo — six minutes
 
-**Setup before the call.**
+**Setup before the call.** Three browser tabs: prod n8n, the GitHub Actions tab,
+the repo's commit history.
 
-1. Three browser tabs: prod n8n, the GitHub Actions tab, the repo's commit history.
-2. Seed the break, so there is a bad version in prod to roll back *from* and a
-   good version in history to roll back *to*:
+Then plant the break — and plant it on `dev`, so it arrives in prod the way a
+real bad change would, through the promotion chain:
 
-   ```bash
-   ./scripts/demo-seed-break.sh --workflow "DevOps — GitHub PR Review (multi-agent)" --branch main --push
-   ```
+```bash
+git checkout dev
+./scripts/demo-seed-break.sh --workflow "DevOps — GitHub PR Review (multi-agent)" --allow-dev
+git push origin dev
+```
 
-   That swaps the `Get PR diff` GitHub node for a no-op and commits it. Push
-   propagates it to prod, so you start from a broken prod rather than building
-   up to one. `--list` shows the other integration nodes if you want a different
-   one.
+That swaps the `Get PR diff` GitHub node for a no-op, mints a fresh `versionId`,
+and commits. `--list` shows the other integration nodes if you want a different
+one.
 
-   **Seed on `main`, not `dev`** — the script refuses `dev` for this reason. A
-   push to `dev` opens a promotion PR into `staging`, `validate-promotion.yml`
-   auto-merges it, and the merge webhook pulls the break into the staging
-   instance. The break does not stay where you put it. (`--allow-dev` overrides,
-   if you actually want to demo the propagation.)
+`--allow-dev` is required and this is its intended use. The flag exists because
+seeding on `dev` *accidentally* lets a break escape into staging; seeding on
+`dev` *deliberately* is how you get a genuinely-promoted bad version in prod.
 
-   Without this step `--to last-good` correctly refuses: 15 of the 16 workflow
-   files have exactly one commit in their history, and there is no earlier
-   version to restore.
+**Do not seed on `main`.** A direct push to `main` fires no `pull_request`
+webhook, so the prod instance never pulls it — you would have a broken `main`
+and a healthy prod while telling the room prod is down.
+
+The push then drives the chain on its own:
+
+1. `Promote` opens the `dev → staging` PR.
+2. `Validate promotion` lints the workflow JSON and merges it. The staging
+   instance pulls.
+3. That merge is a push to `staging`, so `Promote` opens the `staging → main`
+   PR — and stops. This one is yours.
+4. **Merge it.** The webhook fires, the prod instance pulls, and prod is now
+   genuinely broken by a reviewed, merged change.
+
+Give step 2 a minute; the runner queue, not the job, is the slow part.
+
+Two prerequisites that are easy to lose and fatal to the demo:
+
+- **Prod must run exactly one `n8n-main` replica.** Source control state lives on
+  each pod's own filesystem, so with two replicas the pull load-balances and
+  succeeds or fails at random — half your pulls return "Source control is not
+  properly set up". `kubectl -n n8n-prod scale deploy n8n-main --replicas=1`, and
+  set `n8n.main.replicas: 1` in the chart so a helm upgrade does not undo it.
+- **Every seeded change needs a new `versionId`.** n8n's pull diffs on
+  `versionId`, so a content change that reuses the old one reports "no workflow
+  changes" and never imports. `demo-seed-break.sh` handles this; hand-edits do
+  not.
 
 **Beat 1 — establish the break (45s).** Show prod. The `Get PR diff` step is
 gone, replaced by a no-op that was never tested against their GitHub. Then show

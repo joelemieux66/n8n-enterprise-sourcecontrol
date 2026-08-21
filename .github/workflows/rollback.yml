@@ -48,6 +48,14 @@ permissions:
   contents: write
   pull-requests: write
 
+# bash -e is GitHub's default, but NOT pipefail. Every step here pipes the
+# rollback script into tee, and tee always exits 0 — so without pipefail a
+# failed rollback is reported as a successful job. That is exactly how a broken
+# pull got a green check on run 32493967654.
+defaults:
+  run:
+    shell: bash -euo pipefail {0}
+
 jobs:
   plan:
     name: Plan
