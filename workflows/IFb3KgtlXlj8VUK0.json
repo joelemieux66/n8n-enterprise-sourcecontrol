@@ -19,15 +19,37 @@
       ]
     },
     {
+      "parameters": {
+        "resource": "pullRequest",
+        "operation": "getDiff",
+        "pullRequestNumber": "={{ $json.pr_number }}",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.owner }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.repo }}"
+        }
+      },
       "id": "get_diff",
-      "name": "Get PR diff (BROKEN)",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
+      "name": "Get PR diff",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
       "position": [
         208,
         64
       ],
-      "parameters": {}
+      "webhookId": "06b76da6-94cf-4c2d-a3ef-7eb563be9d99",
+      "credentials": {
+        "githubApi": {
+          "id": "NVmbTZ3qsmlwk6Ls",
+          "name": "GitHub account"
+        }
+      },
+      "notes": "Select GitHub credential. Fetches the raw diff of the opened PR."
     },
     {
       "parameters": {
@@ -338,6 +360,17 @@
     }
   ],
   "connections": {
+    "Get PR diff": {
+      "main": [
+        [
+          {
+            "node": "PR Reviewer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "PR Reviewer": {
       "main": [
         [
@@ -419,7 +452,7 @@
       "main": [
         [
           {
-            "node": "Get PR diff (BROKEN)",
+            "node": "Get PR diff",
             "type": "main",
             "index": 0
           }
@@ -442,17 +475,6 @@
         [
           {
             "node": "Close PR (deny)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get PR diff (BROKEN)": {
-      "main": [
-        [
-          {
-            "node": "PR Reviewer",
             "type": "main",
             "index": 0
           }
