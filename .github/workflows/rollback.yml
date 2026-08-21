@@ -69,10 +69,21 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.map.outputs.branch }}
 
+      # Repo-level, keyed by environment — NOT environment-scoped. Environment
+      # secrets are only visible to jobs that declare `environment:`, and this
+      # job must not: binding it to `prod` would make the plan itself wait for
+      # approval, when the whole point is to read the plan before approving.
+      # The `environment:` block on the apply job below stays purely as the gate.
       - name: Dry run
         env:
-          N8N_BASE_URL: ${{ vars.N8N_BASE_URL }}
-          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+          N8N_BASE_URL: >-
+            ${{ inputs.environment == 'prod' && vars.N8N_BASE_URL_PROD
+             || inputs.environment == 'staging' && vars.N8N_BASE_URL_STAGING
+             || vars.N8N_BASE_URL_DEV }}
+          N8N_API_KEY: >-
+            ${{ inputs.environment == 'prod' && secrets.N8N_PROD_API_KEY
+             || inputs.environment == 'staging' && secrets.N8N_STAGING_API_KEY
+             || secrets.N8N_DEV_API_KEY }}
         run: |
           chmod +x scripts/*.sh
           ./scripts/n8n-rollback.sh \
@@ -98,10 +109,16 @@ jobs:
     if: ${{ inputs.plan_only == false }}
     runs-on: ubuntu-latest
     # Bind to the GitHub Environment of the same name. Add required reviewers
-    # on `prod` and this job waits for a human before touching anything.
+    # on `prod` and this job waits for a human before touching anything. The
+    # binding exists ONLY for that gate — the URL and key come from repo-level
+    # values keyed by environment, the same ones the plan job reads, so plan and
+    # apply can never disagree about which instance they are talking to.
     environment:
       name: ${{ inputs.environment }}
-      url: ${{ vars.N8N_BASE_URL }}
+      url: >-
+        ${{ inputs.environment == 'prod' && vars.N8N_BASE_URL_PROD
+             || inputs.environment == 'staging' && vars.N8N_BASE_URL_STAGING
+             || vars.N8N_BASE_URL_DEV }}
     outputs:
       commit: ${{ steps.run.outputs.commit }}
     steps:
@@ -118,8 +135,14 @@ jobs:
       - id: run
         name: Roll back and pull
         env:
-          N8N_BASE_URL: ${{ vars.N8N_BASE_URL }}
-          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+          N8N_BASE_URL: >-
+            ${{ inputs.environment == 'prod' && vars.N8N_BASE_URL_PROD
+             || inputs.environment == 'staging' && vars.N8N_BASE_URL_STAGING
+             || vars.N8N_BASE_URL_DEV }}
+          N8N_API_KEY: >-
+            ${{ inputs.environment == 'prod' && secrets.N8N_PROD_API_KEY
+             || inputs.environment == 'staging' && secrets.N8N_STAGING_API_KEY
+             || secrets.N8N_DEV_API_KEY }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
           chmod +x scripts/*.sh
