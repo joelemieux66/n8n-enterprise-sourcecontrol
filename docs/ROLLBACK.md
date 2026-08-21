@@ -71,14 +71,42 @@ approval gate for rollback is the GitHub Environment reviewer, not a PR.
 
 ## Setup
 
-**GitHub side.** Create three Environments (Settings → Environments): `dev`,
-`staging`, `prod`. On each, set
+**GitHub side.** Two separate pieces: where the credentials live, and where the
+gate lives.
 
-- variable `N8N_BASE_URL` — e.g. `https://n8n-prod.example.com`
-- secret `N8N_API_KEY` — a public API key from an owner/admin user on that instance
+*Credentials — repository level, keyed by environment* (Settings → Secrets and
+variables → Actions):
 
-On `prod`, add yourself as a **required reviewer**. That is what makes the apply
-job pause for approval, which is the single best thirty seconds of this demo.
+| Kind | Names |
+|---|---|
+| Variables | `N8N_BASE_URL_DEV`, `N8N_BASE_URL_STAGING`, `N8N_BASE_URL_PROD` |
+| Secrets | `N8N_DEV_API_KEY`, `N8N_STAGING_API_KEY`, `N8N_PROD_API_KEY` |
+
+Each key is a public API key from an owner/admin user on that instance — source
+control endpoints are owner-scoped.
+
+These are deliberately **not** environment-scoped secrets. GitHub only exposes
+environment secrets to a job that declares `environment:`, and the plan job must
+not declare one — binding it to `prod` would make the plan wait for the same
+approval you are trying to inform. Environment-scoped secrets mean the plan job
+reads no URL and no key, and silently skips the drift check, which is the single
+most valuable line in the plan. Keying them at repo level is what lets plan and
+apply read the same instance and never disagree.
+
+The trade-off, stated plainly because a security reviewer will find it: any job
+in this repo can read the prod key, including the ungated plan job. If your
+threat model needs the prod key gated behind the approval, move it to an
+environment secret and accept that the plan can no longer do the drift check —
+you would find out about instance drift after approving rather than before.
+
+*The gate — environment level.* Create three Environments (Settings →
+Environments): `dev`, `staging`, `prod`. They need no variables or secrets. On
+`prod`, add yourself as a **required reviewer**. That is what makes the apply job
+pause for approval, which is the single best thirty seconds of this demo.
+
+Note that environment protection rules need a public repo, or GitHub Pro/Team on
+a private one. On GitHub Free, making this repo private silently deletes the
+required-reviewer rule and the gate stops pausing, with no error.
 
 **n8n side.** On each instance, Settings → Source Control: connect the repo, set
 the branch, and on prod tick *branch is protected*.
