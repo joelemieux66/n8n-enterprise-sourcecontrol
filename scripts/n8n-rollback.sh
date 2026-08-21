@@ -127,6 +127,12 @@ for k,v in sorted(out.items()): print("%s\t%s"%(k,v))'
 json_version_id() {
   pyq 'import json,sys;print(json.load(sys.stdin).get("versionId","") or "")'
 }
+json_node_sig() { # stdin: workflow json -> stable signature of the node set
+  pyq 'import json,sys,hashlib
+d=json.load(sys.stdin)
+sig="\n".join(sorted("%s|%s"%(n.get("name",""),n.get("type","")) for n in (d.get("nodes") or [])))
+print(hashlib.sha256(sig.encode()).hexdigest()[:12])'
+}
 json_var_keys() { # stdin: variable stub file -> keys
   pyq 'import json,sys
 d=json.load(sys.stdin)
@@ -316,11 +322,27 @@ if [[ -n "${N8N_BASE_URL:-}" && -n "${N8N_API_KEY:-}" ]]; then
   if [[ -n "$live" ]] && grep -q '"versionId"' <<<"$live"; then
     live_v=$(json_version_id <<<"$live")
     repo_v=$(json_version_id < "$WF_FILE")
-    if [[ -n "$live_v" && -n "$repo_v" && "$live_v" != "$repo_v" ]]; then
+    # Two independent signals. versionId catches an edit made ON the instance
+    # (n8n mints a new one). The node signature catches the case versionId
+    # cannot see: the repo changed while the instance did not, so both sides
+    # still carry the same versionId but the contents differ. Reporting "no
+    # drift" there is worse than saying nothing.
+    live_sig=$(json_node_sig <<<"$live")
+    repo_sig=$(json_node_sig < "$WF_FILE")
+    if [[ "$live_sig" != "$repo_sig" ]]; then
+      warn "$ENV_NAME is NOT running what the repo says it is"
+      warn "  node sets differ (instance $live_sig, repo HEAD $repo_sig)"
+      if [[ "$live_v" == "$repo_v" ]]; then
+        warn "  versionId matches on both sides ($live_v), so this is a repo-side change"
+        warn "  the instance never pulled — check its Source Control connection"
+      else
+        warn "  someone edited this workflow outside source control; the pull will overwrite it"
+      fi
+    elif [[ -n "$live_v" && -n "$repo_v" && "$live_v" != "$repo_v" ]]; then
       warn "instance drift: $ENV_NAME is running versionId $live_v, repo HEAD says $repo_v"
-      warn "  someone edited this workflow outside source control; the pull will overwrite it"
+      warn "  same nodes, but the versions differ — parameters may have been edited on the instance"
     else
-      ok "no drift — $ENV_NAME matches repo HEAD"
+      ok "no drift — $ENV_NAME matches repo HEAD (nodes $repo_sig, version $repo_v)"
     fi
   else
     warn "could not read workflow from $N8N_BASE_URL (bad key, or workflow not yet on this instance)"

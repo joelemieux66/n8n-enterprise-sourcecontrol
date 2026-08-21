@@ -95,7 +95,7 @@ fi
 
 # ---- rewrite the JSON -------------------------------------------------------
 python3 - "$WF_FILE" "$NODE" "$LIST_ONLY" <<'PY'
-import json, sys, re
+import json, sys, re, uuid
 
 path, want_node, list_only = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
 doc = json.load(open(path))
@@ -152,6 +152,13 @@ replacement = {
     "parameters": {},
 }
 doc["nodes"] = [replacement if n is target else n for n in nodes]
+
+# A real edit in n8n mints a new versionId. Preserving the old one makes the
+# rollback plan's drift check compare two identical versions and report "no
+# drift" for a workflow whose contents differ entirely — false comfort at
+# exactly the wrong moment.
+if doc.get("versionId"):
+    doc["versionId"] = str(uuid.uuid4())
 
 # Rename every reference to the node: connection source keys and destinations.
 conns = doc.get("connections") or {}
