@@ -584,30 +584,15 @@
       ]
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "https://uptime.betterstack.com/api/v3/incidents",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBearerAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ {\n  \"name\": ($('Orchestrator Agent').item.json.output.verdict + ' — ' + $('Incoming alert').item.json.alert_type).replace(/\\n/g,' ').slice(0,100),\n  \"summary\": ('[' + String($('Orchestrator Agent').item.json.output.severity || 'high').toUpperCase() + '] ' + $('Orchestrator Agent').item.json.output.verdict + ' — ' + $('Incoming alert').item.json.indicator).slice(0,255),\n  \"description\": (($('Orchestrator Agent').item.json.output.rationale || 'See triage report') + '\\n\\n---\\nIndicator: ' + $('Incoming alert').item.json.indicator + '\\nVerdict: ' + $('Orchestrator Agent').item.json.output.verdict + '\\nSeverity: ' + $('Orchestrator Agent').item.json.output.severity + '\\nSource: n8n-secops-triage · Ref: secops-' + $now.toMillis()).slice(0,4000),\n  \"requester_email\": \"joe.lemieux@n8n.io\",\n  \"email\": true,\n  \"call\": $('Orchestrator Agent').item.json.output.severity === 'critical',\n  \"sms\": $('Orchestrator Agent').item.json.output.severity === 'critical',\n  \"critical_alert\": $('Orchestrator Agent').item.json.output.severity === 'critical'\n} }}",
-        "options": {}
-      },
       "id": "a8e4eee1-c5d6-455d-bb7e-72d6547efc15",
-      "name": "Open Better Stack incident",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "name": "Open Better Stack incident (BROKEN)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
       "position": [
         2128,
         -336
       ],
-      "credentials": {
-        "httpBearerAuth": {
-          "id": "wEz3JJryhlr1mlll",
-          "name": "Better Stack"
-        }
-      }
+      "parameters": {}
     }
   ],
   "connections": {
@@ -772,7 +757,7 @@
       "main": [
         [
           {
-            "node": "Open Better Stack incident",
+            "node": "Open Better Stack incident (BROKEN)",
             "type": "main",
             "index": 0
           }
@@ -786,7 +771,7 @@
         ]
       ]
     },
-    "Open Better Stack incident": {
+    "Open Better Stack incident (BROKEN)": {
       "main": [
         [
           {
