@@ -1,9 +1,22 @@
 name: Validate promotion
 
-# Runs on both promotion hops. The difference is what happens after validation:
-# dev -> staging auto-merges (fast inner loop), staging -> main does not. Prod
-# keeps a human on the merge button, which is also the gate the rollback demo
-# points at.
+# One job, one runner. A promotion check that takes longer than the thing it is
+# gating is a demo liability: dev -> staging used to spend ~66s across three
+# sequential jobs (lint -> validate-n8n -> merge), each paying its own runner
+# spin-up and checkout. That is a minute of dead air right when you are saying
+# "watch, it merges itself."
+#
+# What it checks: changed workflow JSON parses and has the keys n8n requires.
+# That is the failure mode worth catching on a promotion — a malformed file that
+# would break the pull on the target instance.
+#
+# The old validate-n8n job (import each changed workflow into the live dev
+# instance as a scratch draft) was continue-on-error, so it never actually
+# gated anything — it just cost a runner and left scratch workflows on dev. It
+# is in git history if you want it back.
+#
+# dev -> staging merges itself. staging -> main does not: a PR into main is a
+# prod deploy, and a human owns that click.
 
 on:
   pull_request:
@@ -14,80 +27,64 @@ permissions:
   contents: write
   pull-requests: write
 
-jobs:
-  lint-json:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Validate workflow JSON structure
-        run: |
-          set -e
-          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- 'workflows/*.json')
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No changed workflow JSON files - nothing to lint."
-            exit 0
-          fi
-          for f in "${files[@]}"; do
-            echo "Checking $f"
-            jq empty "$f"
-            jq -e 'has("nodes") and has("connections")' "$f" > /dev/null \
-              || { echo "::error file=$f::Missing required 'nodes' or 'connections' key"; exit 1; }
-          done
-          echo "All workflow JSON files are structurally valid."
+concurrency:
+  group: validate-promotion-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
-  validate-n8n:
-    needs: lint-json
+jobs:
+  check:
+    name: Check and merge
     runs-on: ubuntu-latest
-    continue-on-error: true
-    env:
-      N8N_API_BASE: https://n8n-dev-demo.joseph-lemieux.com/api/v1
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Import each changed workflow as a scratch draft to validate against live n8n
+
+      - name: Lint changed workflow JSON
         run: |
-          set -e
-          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- 'workflows/*.json')
+          set -euo pipefail
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR \
+            "origin/${{ github.base_ref }}...HEAD" -- 'workflows/*.json')
+
           if [ ${#files[@]} -eq 0 ]; then
-            echo "No changed workflow JSON files - nothing to validate."
+            echo "No changed workflow JSON — nothing to lint."
+            echo "No workflow changes." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+
+          {
+            echo "### Promotion check"
+            echo ""
+            echo "| workflow | nodes | result |"
+            echo "|---|---:|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
           fail=0
           for f in "${files[@]}"; do
-            echo "Validating $f against n8n-dev..."
-            payload=$(jq '{name: ("CI validation - " + (.name // "unnamed")), nodes, connections, settings: {executionOrder: "v1"}}' "$f")
-
-            response=$(curl -s -w "\n%{http_code}" -X POST "$N8N_API_BASE/workflows" \
-              -H "X-N8N-API-KEY: ${{ secrets.N8N_DEV_API_KEY }}" \
-              -H "Content-Type: application/json" \
-              -d "$payload")
-            status=$(echo "$response" | tail -n1)
-            body=$(echo "$response" | sed '$d')
-
-            if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
-              id=$(echo "$body" | jq -r '.id')
-              echo "  n8n accepted $f (scratch id $id) - cleaning up"
-              curl -s -X DELETE "$N8N_API_BASE/workflows/$id" \
-                -H "X-N8N-API-KEY: ${{ secrets.N8N_DEV_API_KEY }}" > /dev/null
-            else
-              echo "::error file=$f::n8n rejected this workflow (HTTP $status): $body"
-              fail=1
+            if ! jq empty "$f" 2>/dev/null; then
+              echo "::error file=$f::not valid JSON"
+              echo "| \`$f\` | — | invalid JSON |" >> "$GITHUB_STEP_SUMMARY"
+              fail=1; continue
             fi
+            if ! jq -e 'has("nodes") and has("connections")' "$f" >/dev/null; then
+              echo "::error file=$f::missing required 'nodes' or 'connections' key"
+              echo "| \`$f\` | — | missing nodes/connections |" >> "$GITHUB_STEP_SUMMARY"
+              fail=1; continue
+            fi
+            name=$(jq -r '.name // "(unnamed)"' "$f")
+            count=$(jq '[.nodes[]] | length' "$f")
+            echo "  ok  $name ($count nodes)"
+            echo "| $name | $count | ok |" >> "$GITHUB_STEP_SUMMARY"
           done
           exit $fail
 
-  auto-merge:
-    needs: [lint-json, validate-n8n]
-    # dev -> staging only. A PR into main is a prod deploy; a person merges it.
-    if: always() && needs.lint-json.result == 'success' && github.base_ref == 'staging'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Merge pull request
+      # dev -> staging only. A PR into main is a prod deploy; a person merges it.
+      - name: Merge (dev -> staging only)
+        if: github.base_ref == 'staging'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr merge --merge --admin "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Auto-merged into \`staging\`." >> "$GITHUB_STEP_SUMMARY"
