@@ -19,6 +19,7 @@ WORKFLOW=""
 NODE=""
 BRANCH=""
 DO_PUSH=0
+ALLOW_DEV=0
 WFDIR="${WORKFLOWS_DIR:-workflows}"
 
 usage() {
@@ -31,6 +32,11 @@ Usage: demo-seed-break.sh --workflow <name|id> [options]
   -b, --branch <name>       Branch to commit on. Default: current branch.
       --push                Push after committing (triggers the deploy pull).
       --list                List candidate nodes for --workflow and exit.
+      --allow-dev           Permit seeding on the dev branch. Refused by
+                            default: a push to dev gets promoted to staging
+                            automatically (promotion PR + CI auto-merge), so a
+                            break seeded there does not stay on dev. Seed on
+                            main for a prod rollback demo.
   -h, --help                This.
 EOF
 }
@@ -43,6 +49,7 @@ while [[ $# -gt 0 ]]; do
     -b|--branch)   BRANCH="${2:-}";   shift 2;;
     --push)        DO_PUSH=1; shift;;
     --list)        LIST_ONLY=1; shift;;
+    --allow-dev)   ALLOW_DEV=1; shift;;
     -h|--help)     usage; exit 0;;
     *) echo "unknown argument: $1" >&2; exit 1;;
   esac
@@ -54,7 +61,25 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "✗ not a git rep
 if [[ -n "$BRANCH" ]]; then
   git checkout "$BRANCH" >/dev/null
 fi
-git diff --quiet HEAD || { echo "✗ working tree is dirty — commit or stash first" >&2; exit 1; }
+
+# Seeding on dev does not stay on dev. A push to dev opens a promotion PR into
+# staging, CI auto-merges it, and the merge webhook pulls the break into the
+# staging instance — so the "bad version" escapes the environment you meant to
+# break. Seed on main when the demo rolls back prod.
+CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$CUR_BRANCH" == "dev" && $ALLOW_DEV -eq 0 && $LIST_ONLY -eq 0 ]]; then
+  echo "✗ refusing to seed a break on 'dev'." >&2
+  echo "  A push to dev is promoted to staging automatically, so the break will not" >&2
+  echo "  stay here. For a prod rollback demo, seed on main:" >&2
+  echo "    ./scripts/demo-seed-break.sh --workflow '$WORKFLOW' --branch main --push" >&2
+  echo "  Pass --allow-dev if you really mean to seed on dev." >&2
+  exit 1
+fi
+
+# --list only reads; it does not need a clean tree.
+if [[ $LIST_ONLY -eq 0 ]]; then
+  git diff --quiet HEAD || { echo "✗ working tree is dirty — commit or stash first" >&2; exit 1; }
+fi
 
 # ---- resolve the workflow file (name or id), same rules as n8n-rollback.sh --
 WF_FILE=""

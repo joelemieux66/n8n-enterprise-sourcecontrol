@@ -143,6 +143,12 @@ it on a call.
    up to one. `--list` shows the other integration nodes if you want a different
    one.
 
+   **Seed on `main`, not `dev`** — the script refuses `dev` for this reason. A
+   push to `dev` opens a promotion PR into `staging`, `validate-promotion.yml`
+   auto-merges it, and the merge webhook pulls the break into the staging
+   instance. The break does not stay where you put it. (`--allow-dev` overrides,
+   if you actually want to demo the propagation.)
+
    Without this step `--to last-good` correctly refuses: 15 of the 16 workflow
    files have exactly one commit in their history, and there is no earlier
    version to restore.
