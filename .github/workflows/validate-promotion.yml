@@ -79,12 +79,24 @@ jobs:
           exit $fail
 
       # dev -> staging only. A PR into main is a prod deploy; a person merges it.
+      #
+      # Merges with PROMOTE_TOKEN, not GITHUB_TOKEN. A push made with the
+      # built-in token does not trigger workflows, so merging with it lands the
+      # commit on staging and the staging -> main promotion never opens. The
+      # chain silently stops one hop short.
       - name: Merge (dev -> staging only)
         if: github.base_ref == 'staging'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN || secrets.GITHUB_TOKEN }}
+          HAS_PAT: ${{ secrets.PROMOTE_TOKEN != '' }}
         run: |
           gh pr merge --merge --admin "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Auto-merged into \`staging\`." >> "$GITHUB_STEP_SUMMARY"
+          if [ "$HAS_PAT" = "true" ]; then
+            echo "The staging → main promotion will open on its own." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Merged with GITHUB_TOKEN, so this push will not trigger the staging → main promotion. Set PROMOTE_TOKEN."
+            echo "Set \`PROMOTE_TOKEN\` — without it the chain stops here." >> "$GITHUB_STEP_SUMMARY"
+          fi
