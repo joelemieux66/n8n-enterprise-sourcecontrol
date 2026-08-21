@@ -135,6 +135,19 @@ jobs:
           echo "Merging this fires the \`pull_request\` webhook, which triggers the pull on the **$env_name** instance." >> body.md
           cat body.md >> "$GITHUB_STEP_SUMMARY"
 
+      # A PR opened with the built-in GITHUB_TOKEN does not trigger the
+      # promotion check, so it lands needing a maintainer to run it by hand.
+      # Falling back silently hides that, so say which token is in play.
+      - name: Which token
+        env:
+          PAT: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          if [ -n "$PAT" ]; then
+            echo "PROMOTE_TOKEN is set (${#PAT} chars) — PR will be human-authored and its checks will self-start."
+          else
+            echo "::warning::PROMOTE_TOKEN is empty — falling back to GITHUB_TOKEN. The PR will be bot-authored and its checks will need to be run manually."
+          fi
+
       - name: Open or update the PR
         env:
           # PAT first so the PR is human-authored and its checks self-start.
