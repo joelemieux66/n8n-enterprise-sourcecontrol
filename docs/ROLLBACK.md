@@ -178,9 +178,11 @@ Let the plan job finish and open the summary. Walk it line by line:
 > never in the repo — only a reference to it. If someone deleted that credential
 > last week, this rollback succeeds and then fails at runtime. Variables, same
 > logic. Data tables: schemas sync, rows never do, and a forced pull deletes a
-> table that isn't in git. And drift — we ask the instance what version it is
-> actually running and compare it to what the repo thinks. If someone got around
-> the protection, you find out now."
+> table that isn't in git. And drift — we ask the instance what it is actually
+> running and compare it to the repo two ways: the version id, which catches an
+> edit made on the instance, and the node set, which catches the instance never
+> having pulled at all. If someone got around the protection, or a pull has been
+> quietly failing for a week, you find out now."
 
 This repo gives you a genuine, unstaged hit here: the workflow's GitHub nodes
 reference credential `NVmbTZ3qsmlwk6Ls` ("GitHub account"), which has no stub
