@@ -1,0 +1,59 @@
+name: Tag prod deploy
+
+# Deliberately does NOT pull. The promotion pipeline
+# (workflows/VjZ8UMkT85Bp2mZX.json) already receives the pull_request webhook on
+# merge and calls the prod instance's source-control pull API. A second pull
+# from Actions would double-fire against the same instance.
+#
+# What this does is the one thing the webhook pipeline cannot: leave a marker in
+# git. A dated tag on every prod deploy turns "which commit was good?" from
+# archaeology into `--to prod-2026-08-14-1132`.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workflows/**'
+      - 'credential_stubs/**'
+      - 'datatables/**'
+      - 'tags.json'
+      - 'folders.json'
+
+concurrency:
+  group: n8n-tag-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Tag this commit
+        run: |
+          git config user.name  "n8n-deploy-bot"
+          git config user.email "actions@users.noreply.github.com"
+          TAG="prod-$(date -u +%Y-%m-%d-%H%M)"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::notice::$TAG already exists (two deploys inside the same minute) — skipping"
+            exit 0
+          fi
+          git tag -a "$TAG" -m "prod deploy: ${{ github.sha }}"
+          git push origin "$TAG"
+          {
+            echo "### Tagged \`$TAG\`"
+            echo "Roll back to this point with:"
+            echo '```'
+            echo "./scripts/n8n-rollback.sh -w '<workflow>' -e prod -t $TAG"
+            echo '```'
+            echo "Workflows changed in this deploy:"
+            echo '```'
+            git diff --name-status HEAD~1 HEAD -- workflows/ || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

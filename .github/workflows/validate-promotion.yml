@@ -1,8 +1,13 @@
-name: Validate promotion to staging
+name: Validate promotion
+
+# Runs on both promotion hops. The difference is what happens after validation:
+# dev -> staging auto-merges (fast inner loop), staging -> main does not. Prod
+# keeps a human on the merge button, which is also the gate the rollback demo
+# points at.
 
 on:
   pull_request:
-    branches: [staging]
+    branches: [staging, main]
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -76,7 +81,8 @@ jobs:
 
   auto-merge:
     needs: [lint-json, validate-n8n]
-    if: always() && needs.lint-json.result == 'success'
+    # dev -> staging only. A PR into main is a prod deploy; a person merges it.
+    if: always() && needs.lint-json.result == 'success' && github.base_ref == 'staging'
     runs-on: ubuntu-latest
     steps:
       - name: Merge pull request

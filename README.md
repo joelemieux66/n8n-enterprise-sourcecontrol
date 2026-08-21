@@ -55,6 +55,16 @@ Each n8n instance connects to **one branch** of this repo (multi-instance, multi
 
 Note: the promotion pipeline workflow lives in Git like any other workflow, but it doesn't run on Dev, Staging, or Prod. It runs on a separate orchestrator/automation instance (or wherever your GitHub webhooks land) that has network access to the Staging and Prod internal API endpoints and holds its own `Staging API` / `Prod API` header-auth credentials. Keep that instance out of the Dev→Staging→Prod promotion chain — it's infrastructure, not an environment.
 
+## Rolling back
+
+Promotion is only half the story — the other half is what you do when a promoted
+change is wrong. [`docs/ROLLBACK.md`](docs/ROLLBACK.md) covers the rollback path:
+a one-click GitHub Action that rewinds a *single* workflow file to a known-good
+commit, runs pre-flight checks for the things git cannot restore (credentials,
+variables, data tables, out-of-band instance edits), waits for a GitHub
+Environment approval, then triggers the pull and opens a backport PR to `dev` so
+the bad version cannot be re-promoted. It includes a six-minute demo script.
+
 ## Prerequisites
 
 - n8n Enterprise license active on all three instances (Source Control is an Enterprise-only feature)

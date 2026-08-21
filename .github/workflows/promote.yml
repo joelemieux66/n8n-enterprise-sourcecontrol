@@ -1,0 +1,98 @@
+name: Promote
+
+# dev -> staging -> main, as a reviewable PR.
+# The PR body lists workflows by NAME, not by opaque ID, so the reviewer can
+# actually tell what they are approving.
+#
+# This only opens the PR. Merging it is what deploys: the promotion pipeline
+# (workflows/VjZ8UMkT85Bp2mZX.json) receives GitHub's pull_request webhook and
+# calls the target instance's source-control pull API. Nothing here pulls.
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'Source branch'
+        required: true
+        default: dev
+        type: choice
+        options: [dev, staging]
+      to:
+        description: 'Target branch'
+        required: true
+        default: staging
+        type: choice
+        options: [staging, main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject nonsense promotions
+        run: |
+          if [ "${{ inputs.from }}" = "${{ inputs.to }}" ]; then
+            echo "::error::from and to are the same branch"; exit 1
+          fi
+          if [ "${{ inputs.from }}" = "staging" ] && [ "${{ inputs.to }}" = "staging" ]; then
+            echo "::error::invalid hop"; exit 1
+          fi
+          if [ "${{ inputs.from }}" = "dev" ] && [ "${{ inputs.to }}" = "main" ]; then
+            echo "::error::dev cannot promote straight to main — go through staging"; exit 1
+          fi
+
+      - name: Build human-readable diff
+        id: diff
+        run: |
+          git diff --name-status "origin/${{ inputs.to }}...origin/${{ inputs.from }}" \
+            -- workflows/ > changed.txt || true
+
+          : > body.md
+          echo "Promoting \`${{ inputs.from }}\` → \`${{ inputs.to }}\`." >> body.md
+          echo "" >> body.md
+
+          if [ ! -s changed.txt ]; then
+            echo "No workflow changes to promote." >> body.md
+          else
+            echo "| change | workflow | id |" >> body.md
+            echo "|---|---|---|" >> body.md
+            while read -r status path; do
+              [ -z "${path:-}" ] && continue
+              id=$(basename "$path" .json)
+              name=$(git show "origin/${{ inputs.from }}:$path" 2>/dev/null \
+                     | python3 -c 'import json,sys;print(json.load(sys.stdin).get("name","?"))' 2>/dev/null || echo "(deleted)")
+              case "$status" in
+                A) label="added" ;;
+                M) label="modified" ;;
+                D) label="**deleted**" ;;
+                *) label="$status" ;;
+              esac
+              echo "| $label | $name | \`$id\` |" >> body.md
+            done < changed.txt
+          fi
+
+          echo "" >> body.md
+          echo "Merging this fires the \`pull_request\` webhook, which triggers the pull on the ${{ inputs.to }} instance." >> body.md
+          cat body.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh pr list --base "${{ inputs.to }}" --head "${{ inputs.from }}" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --body-file body.md
+            echo "Updated existing PR #$existing"
+          else
+            gh pr create \
+              --base "${{ inputs.to }}" --head "${{ inputs.from }}" \
+              --title "Promote ${{ inputs.from }} → ${{ inputs.to }}" \
+              --body-file body.md
+          fi
