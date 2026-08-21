@@ -215,6 +215,18 @@ if [[ "$TARGET" == "last-good" ]]; then
   # exact version you just rolled back from — the classic yo-yo.
   REJECTED=$(git log --format=%B -- "$WF_FILE" \
              | sed -n 's/^rolled-back-from:[[:space:]]*//p' | sort -u || true)
+  # Reject by content, not by commit id. The same bad workflow can sit in more
+  # than one commit (a reformat, a versionId rewrite, a cherry-pick), and a
+  # SHA-keyed guard only rejects the one commit whose id landed in a trailer —
+  # then happily offers you its twin on the next run.
+  REJECTED_SIGS=""
+  if [[ -n "$REJECTED" ]]; then
+    while IFS= read -r rsha; do
+      [[ -n "$rsha" ]] || continue
+      rsig=$(git show "$rsha:$WF_FILE" 2>/dev/null | json_content_sig 2>/dev/null || true)
+      [[ -n "$rsig" ]] && REJECTED_SIGS+="$rsig"$'\n'
+    done <<< "$REJECTED"
+  fi
   # Compare what runs, not the bytes. A commit that only rewrote versionId (or
   # reformatted the file) is not an earlier version to roll back to.
   HEAD_SIG=$(json_content_sig < "$WF_FILE")
@@ -227,6 +239,9 @@ if [[ "$TARGET" == "last-good" ]]; then
     fi
     csig=$(git show "$c:$WF_FILE" 2>/dev/null | json_content_sig 2>/dev/null || true)
     [[ -n "$csig" && "$csig" != "$HEAD_SIG" ]] || continue
+    if [[ -n "$REJECTED_SIGS" ]] && grep -qxF -- "$csig" <<<"$REJECTED_SIGS"; then
+      continue                     # same content as something already rejected
+    fi
     SHA="$c"; break
   done < <(git log --format=%H -- "$WF_FILE")
   if [[ -z "$SHA" ]]; then
