@@ -289,13 +289,21 @@
       ]
     },
     {
+      "id": "deny_gate",
+      "name": "Deny?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        60
+      ],
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": false,
+            "version": 2,
             "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
+            "caseSensitive": false,
+            "typeValidation": "loose"
           },
           "combinator": "or",
           "conditions": [
@@ -320,21 +328,20 @@
           ]
         },
         "options": {}
-      },
-      "id": "deny_gate",
-      "name": "Deny?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1024,
-        64
-      ]
+      }
     },
     {
+      "id": "close_pr",
+      "name": "Close PR (deny)",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1260,
+        -40
+      ],
       "parameters": {
         "resource": "pullRequest",
         "operation": "close",
-        "pullRequestNumber": "={{ $('PR ref').item.json.pr_number }}",
         "owner": {
           "__rl": true,
           "mode": "name",
@@ -344,19 +351,12 @@
           "__rl": true,
           "mode": "name",
           "value": "={{ $('PR ref').item.json.repo }}"
-        }
+        },
+        "pullRequestNumber": "={{ $('PR ref').item.json.pr_number }}"
       },
-      "id": "close_pr",
-      "name": "Close PR (deny)",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        1264,
-        -48
-      ],
-      "webhookId": "13639cb8-3237-41a3-b9d9-b4e4cba4c2d6",
       "disabled": true,
-      "notes": "ENABLE + attach the GitHub credential. Closes the PR on a request_changes/block verdict."
+      "notes": "ENABLE + attach the GitHub credential. Closes the PR on a request_changes/block verdict.",
+      "webhookId": "13639cb8-3237-41a3-b9d9-b4e4cba4c2d6"
     }
   ],
   "connections": {
@@ -395,7 +395,13 @@
     },
     "Search infra docs": {
       "ai_tool": [
-        []
+        [
+          {
+            "node": "PR Reviewer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
       ]
     },
     "Infra Docs Embeddings (OpenAI)": {
@@ -485,7 +491,7 @@
     "binaryMode": "separate"
   },
   "triggerCount": 1,
-  "versionId": "01f923a6-37e5-455a-8dbc-ea4c00928917",
+  "versionId": "4352dd81-4d63-475e-89ba-5cd0b39ccd8e",
   "owner": {
     "type": "team",
     "teamId": "W8qK4dCyGa2lOmi7",
