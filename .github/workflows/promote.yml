@@ -17,6 +17,13 @@ name: Promote
 # Requires "Allow GitHub Actions to create and approve pull requests"
 # (Settings -> Actions -> General). Without it every run fails with
 # "GitHub Actions is not permitted to create or approve pull requests".
+#
+# Set a PROMOTE_TOKEN secret (a PAT with repo scope, or fine-grained with
+# Contents + Pull requests: read and write). Events created with the built-in
+# GITHUB_TOKEN do not start new workflow runs, so a PR opened with it can land
+# with its checks needing a maintainer to run them by hand. A PAT makes the PR
+# an ordinary human-authored PR and the checks start themselves.
+# Without PROMOTE_TOKEN this still works, it just falls back to github.token.
 
 on:
   push:
@@ -130,7 +137,8 @@ jobs:
 
       - name: Open or update the PR
         env:
-          GH_TOKEN: ${{ github.token }}
+          # PAT first so the PR is human-authored and its checks self-start.
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN || github.token }}
           FROM: ${{ steps.hop.outputs.from }}
           TO: ${{ steps.hop.outputs.to }}
         run: |
