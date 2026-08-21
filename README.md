@@ -57,13 +57,18 @@ Note: the promotion pipeline workflow lives in Git like any other workflow, but 
 
 ## Rolling back
 
-Promotion is only half the story — the other half is what you do when a promoted
-change is wrong. [`docs/ROLLBACK.md`](docs/ROLLBACK.md) covers the rollback path:
-a one-click GitHub Action that rewinds a *single* workflow file to a known-good
-commit, runs pre-flight checks for the things git cannot restore (credentials,
-variables, data tables, out-of-band instance edits), waits for a GitHub
-Environment approval, then triggers the pull and opens a backport PR to `dev` so
-the bad version cannot be re-promoted. It includes a six-minute demo script.
+Use n8n's own workflow version history: open the workflow on that instance and
+restore an earlier version. There is no git-side rollback in this repo.
+
+Two consequences worth knowing, because they are easy to trip over live:
+
+- **A UI restore does not write back to Git.** That instance now differs from its
+  branch, and the next pull — which any promotion into that branch triggers —
+  overwrites the restored version. Push the restore back from the instance if you
+  want it to stick.
+- **A protected branch blocks it.** n8n's *branch is protected* setting makes
+  workflows read-only on that instance, which also prevents restoring a version
+  there. Leave an environment unprotected if you intend to restore in its UI.
 
 ## Prerequisites
 
