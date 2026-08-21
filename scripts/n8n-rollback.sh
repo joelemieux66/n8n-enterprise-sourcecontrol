@@ -127,6 +127,19 @@ for k,v in sorted(out.items()): print("%s\t%s"%(k,v))'
 json_version_id() {
   pyq 'import json,sys;print(json.load(sys.stdin).get("versionId","") or "")'
 }
+json_content_sig() { # stdin: workflow json -> hash of what actually runs
+  # Deliberately ignores versionId, meta, and ordering. A revision that differs
+  # only in versionId is not a different workflow, and treating it as one makes
+  # "last-good" stop at a rewrite of the same broken version.
+  pyq 'import json,sys,hashlib
+d=json.load(sys.stdin)
+nodes=sorted(
+    (str(n.get("name","")), str(n.get("type","")), json.dumps(n.get("parameters") or {},sort_keys=True,default=str))
+    for n in (d.get("nodes") or [])
+)
+payload=json.dumps({"nodes":nodes,"connections":d.get("connections") or {}},sort_keys=True,default=str)
+print(hashlib.sha256(payload.encode()).hexdigest()[:12])'
+}
 json_node_sig() { # stdin: workflow json -> stable signature of the node set
   pyq 'import json,sys,hashlib
 d=json.load(sys.stdin)
@@ -202,7 +215,9 @@ if [[ "$TARGET" == "last-good" ]]; then
   # exact version you just rolled back from — the classic yo-yo.
   REJECTED=$(git log --format=%B -- "$WF_FILE" \
              | sed -n 's/^rolled-back-from:[[:space:]]*//p' | sort -u || true)
-  HEAD_BLOB=$(git rev-parse "HEAD:$WF_FILE")
+  # Compare what runs, not the bytes. A commit that only rewrote versionId (or
+  # reformatted the file) is not an earlier version to roll back to.
+  HEAD_SIG=$(json_content_sig < "$WF_FILE")
   SHA=""
   while IFS= read -r c; do
     [[ -n "$c" ]] || continue
@@ -210,8 +225,8 @@ if [[ "$TARGET" == "last-good" ]]; then
     if [[ -n "$REJECTED" ]] && grep -qxF -- "$short_c" <<<"$REJECTED"; then
       continue                                   # explicitly rolled back before
     fi
-    blob=$(git rev-parse "$c:$WF_FILE" 2>/dev/null || true)
-    [[ -n "$blob" && "$blob" != "$HEAD_BLOB" ]] || continue
+    csig=$(git show "$c:$WF_FILE" 2>/dev/null | json_content_sig 2>/dev/null || true)
+    [[ -n "$csig" && "$csig" != "$HEAD_SIG" ]] || continue
     SHA="$c"; break
   done < <(git log --format=%H -- "$WF_FILE")
   if [[ -z "$SHA" ]]; then
@@ -229,8 +244,8 @@ fi
 SHORT=$(git rev-parse --short "$SHA")
 CUR_SHA=$(git log -n 1 --format=%H -- "$WF_FILE")
 
-if git show "$SHA:$WF_FILE" | diff -q - "$WF_FILE" >/dev/null 2>&1; then
-  ok "'$WF_NAME' already matches $SHORT. Nothing to do."
+if [[ "$(git show "$SHA:$WF_FILE" | json_content_sig)" == "$(json_content_sig < "$WF_FILE")" ]]; then
+  ok "'$WF_NAME' already runs the same nodes, parameters, and connections as $SHORT. Nothing to do."
   exit 0
 fi
 
