@@ -26,6 +26,19 @@
       ],
       "id": "83a06eef-ba1e-4644-ba3e-93fb79213d71",
       "name": "Code in Python"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "09d47340-3990-4b61-a558-83ffe661847f",
+      "name": "AI Agent"
     }
   ],
   "connections": {
@@ -42,7 +55,13 @@
     },
     "Code in Python": {
       "main": [
-        []
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
@@ -52,7 +71,7 @@
     "availableInMCP": false
   },
   "triggerCount": 0,
-  "versionId": "b9da6d65-5c3b-47d3-9357-99a6738fd153",
+  "versionId": "6a3ec931-e104-4338-90f9-57748fbc2eaa",
   "owner": {
     "type": "team",
     "teamId": "LDZbeEPHll7aysDT",
