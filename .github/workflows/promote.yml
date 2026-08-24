@@ -155,6 +155,15 @@ jobs:
           FROM: ${{ steps.hop.outputs.from }}
           TO: ${{ steps.hop.outputs.to }}
         run: |
+          # Nothing to promote is a normal outcome, not a failure. Without this
+          # the dispatch dies on gh's "No commits between" and shows a red run
+          # that means nothing.
+          if [ -z "$(git rev-list --count "origin/$TO..origin/$FROM" | grep -v '^0$')" ]; then
+            echo "::notice::$FROM is not ahead of $TO — nothing to promote."
+            echo "\`$FROM\` is not ahead of \`$TO\` — nothing to promote." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
           existing=$(gh pr list --base "$TO" --head "$FROM" --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
             gh pr edit "$existing" --body-file body.md
