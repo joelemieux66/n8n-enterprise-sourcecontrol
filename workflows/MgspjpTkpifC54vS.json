@@ -1,0 +1,33 @@
+{
+  "id": "MgspjpTkpifC54vS",
+  "name": "workflow for eunice",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2bdc9364-7281-4354-b41d-6118e26afa72",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "triggerCount": 0,
+  "versionId": "8e166c8c-27e1-4508-934f-de5b04d57bb5",
+  "owner": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}
