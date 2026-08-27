@@ -1,0 +1,122 @@
+{
+  "id": "mNSfPXvgODYNt2iE",
+  "name": "Engle Martin Claims Intake (Demo)",
+  "columns": [
+    {
+      "id": "1xfI205H57LuGOw5",
+      "name": "claimant_name",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "bubFhKWH3JDpW4wO",
+      "name": "policy_number",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "GMBsT7NtNKMe9p0Z",
+      "name": "incident_date",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "YPCEVaUAWGDbfG9y",
+      "name": "description",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "1yuffl19DVqrtdhc",
+      "name": "claim_type_raw",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "QidtsJ9l8NmGDDIh",
+      "name": "source_system",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "WDElswkRDTeZobuT",
+      "name": "missing_required_fields",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "jxwNwb0zcIGBPPkh",
+      "name": "has_missing_required_fields",
+      "type": "boolean",
+      "index": 7
+    },
+    {
+      "id": "iP0h2wswb2caC16b",
+      "name": "claim_type",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "as8Q11mqmZXiWBTK",
+      "name": "confidence_score",
+      "type": "number",
+      "index": 9
+    },
+    {
+      "id": "4WwPXRqDcS1TqsoL",
+      "name": "extracted_dates_object",
+      "type": "string",
+      "index": 10
+    },
+    {
+      "id": "yxC7d3N4i3JFctJS",
+      "name": "extracted_amounts_object",
+      "type": "string",
+      "index": 11
+    },
+    {
+      "id": "0u1YjJMpIZd6Xceu",
+      "name": "parties_involved_object",
+      "type": "string",
+      "index": 12
+    },
+    {
+      "id": "weksCOBdOcYeZ1Pt",
+      "name": "reasoning",
+      "type": "string",
+      "index": 13
+    },
+    {
+      "id": "jS8t65HWfKEI2rvn",
+      "name": "manual_review_required",
+      "type": "boolean",
+      "index": 14
+    },
+    {
+      "id": "6JwwGZsOEEk4eqoo",
+      "name": "reviewer_approved",
+      "type": "boolean",
+      "index": 15
+    },
+    {
+      "id": "gfFjIt54s2mPIRTN",
+      "name": "received_at",
+      "type": "string",
+      "index": 16
+    },
+    {
+      "id": "AwhmiJcgLGwI2OHg",
+      "name": "stored_at",
+      "type": "string",
+      "index": 17
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-08-26T14:08:06.850Z",
+  "updatedAt": "2026-08-26T14:59:22.456Z"
+}
