@@ -1,0 +1,26 @@
+{
+  "id": "UhZyiXUqnPP6YXgM",
+  "name": "Digest Run State",
+  "columns": [
+    {
+      "id": "svYdIeI0iUY1wFO0",
+      "name": "runKey",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "Y5BYW3nnayTk1kb4",
+      "name": "lastRunAt",
+      "type": "date",
+      "index": 1
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-08-30T16:35:50.339Z",
+  "updatedAt": "2026-08-30T22:26:12.099Z"
+}

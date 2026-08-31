@@ -1,0 +1,104 @@
+{
+  "id": "SCNloslAeX8hT1LU",
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4449b377-3e26-4eba-872f-aea802ec2776",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 9,
+        "filters": {
+          "includeSpamTrash": false,
+          "sender": "larkin.kyra97@gmail.com"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        160
+      ],
+      "id": "d819da0d-44f5-413d-ab12-bf05abc9d327",
+      "name": "Get many messages",
+      "webhookId": "4a2a3e0f-a24d-4c0c-8a9a-81107c2d9746",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "eVGy3zigipi8OJ14",
+          "name": "Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "get",
+        "threadId": "=1a0548908372d091",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4c7eab84-d349-4b5a-80de-94ed870fd2ef",
+      "name": "Get a thread",
+      "webhookId": "5b842437-c96b-44b0-815d-5e108586a56d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "eVGy3zigipi8OJ14",
+          "name": "Gmail"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "triggerCount": 0,
+  "versionId": "a82788a9-1a0f-432f-babf-207cf0875867",
+  "owner": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}
