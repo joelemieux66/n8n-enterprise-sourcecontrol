@@ -1,0 +1,18 @@
+{
+  "id": "eVGy3zigipi8OJ14",
+  "name": "Gmail",
+  "type": "gmailOAuth2",
+  "data": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "isGlobal": false,
+  "isResolvable": false,
+  "resolvableAllowFallback": false
+}
