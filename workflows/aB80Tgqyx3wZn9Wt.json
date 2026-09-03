@@ -1,0 +1,37 @@
+{
+  "id": "aB80Tgqyx3wZn9Wt",
+  "name": "My workflow 7",
+  "description": null,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "8d22b636-3f21-48d3-950d-2e0a0cf9d720",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "15bcee1c-d8ed-411f-8033-a9e34ebdf414",
+      "name": "Webhook",
+      "webhookId": "8d22b636-3f21-48d3-950d-2e0a0cf9d720"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "6ad8c38e-19e6-4129-bba7-2742ee6de9d3",
+  "owner": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}
