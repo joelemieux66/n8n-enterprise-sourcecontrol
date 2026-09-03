@@ -1,0 +1,33 @@
+{
+  "id": "CcIsQ1UhvWrzcFkx",
+  "name": "workflow for hope",
+  "description": null,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "77df4d26-2ad3-4ad5-9c25-09acb9e56e5a",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "42c287d1-4284-4c42-b766-22b8e62c4e92",
+  "owner": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}
