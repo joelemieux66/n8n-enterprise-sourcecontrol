@@ -1,0 +1,110 @@
+{
+  "id": "BOTGN1yYLJnxEYiN",
+  "name": "Guess-Who Picks Prep",
+  "columns": [
+    {
+      "id": "lcuDuKlo4cwzeVDk",
+      "name": "runDate",
+      "type": "date",
+      "index": 0
+    },
+    {
+      "id": "lZFd0OCtIqJ5ZkPd",
+      "name": "personName",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "bGooTlmvnVpOGxTc",
+      "name": "pickType",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "Hbs6K4SBh2DjBc7h",
+      "name": "pickTitle",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "7aIVyRgxJ1r4x5vk",
+      "name": "pickCreator",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "QnVmb2mmE9DO2s1D",
+      "name": "pickImageUrl",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "yFL62uj3Gva2v6j2",
+      "name": "pickImageSource",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "zNjRyVCkbCSwGoei",
+      "name": "vacationAnswer",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "9I1Z2M54SBW9aJL3",
+      "name": "vacationImageUrl",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "8S3mH22QPMDEejfN",
+      "name": "seasonAnswer",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "Y0oCGZRAsLeGyn9z",
+      "name": "seasonImageUrl",
+      "type": "string",
+      "index": 10
+    },
+    {
+      "id": "W21u8R8aKNYW9Jv9",
+      "name": "coffeeAnswer",
+      "type": "string",
+      "index": 11
+    },
+    {
+      "id": "86PSor7LT6wbkL0A",
+      "name": "coffeeImageUrl",
+      "type": "string",
+      "index": 12
+    },
+    {
+      "id": "tW6Wf2qWtccNY6H0",
+      "name": "pageImageUrl",
+      "type": "string",
+      "index": 13
+    },
+    {
+      "id": "ZVAc8Bv0MnOeNZV6",
+      "name": "canvaAssetId",
+      "type": "string",
+      "index": 14
+    },
+    {
+      "id": "16nGWKiPyfSKsofV",
+      "name": "canvaAssetName",
+      "type": "string",
+      "index": 15
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-08-30T16:35:49.979Z",
+  "updatedAt": "2026-08-31T00:18:33.235Z"
+}
