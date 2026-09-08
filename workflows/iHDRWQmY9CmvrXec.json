@@ -13,15 +13,40 @@
       ],
       "id": "b7fd3b00-91f8-482d-9b26-8c16e2e94d02",
       "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ed5167af-64ff-4638-b988-c141a39d4fad",
+      "name": "AI Agent"
     }
   ],
-  "connections": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
   "triggerCount": 0,
-  "versionId": "103e5a1a-2cb9-42d3-a7cc-4e4696df6460",
+  "versionId": "4992bada-915e-46ac-b089-be2693f60466",
   "owner": {
     "type": "team",
     "teamId": "LDZbeEPHll7aysDT",
