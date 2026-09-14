@@ -1,0 +1,91 @@
+{
+  "id": "oWdiFWz27yS5pUnq",
+  "name": "Mock: IFS ERP Order Receiver",
+  "description": "Stand-in for the prospect's real IFS ERP endpoint. Logs the normalized order payload from either intake path and returns a confirmation number, so the demo has one real destination and a visible round trip instead of a dead-end mock.",
+  "nodes": [
+    {
+      "id": "b3d55806-ee4b-4272-9024-f08e124e5b87",
+      "name": "IFS ERP Order Receiver (Mock)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ifs-erp-orders",
+        "responseMode": "responseNode"
+      },
+      "webhookId": "93cf9f38-90c6-4ed2-900f-81fbca73a2fc"
+    },
+    {
+      "id": "41555d19-e6c4-4f07-8ae0-2a97a49396ec",
+      "name": "Log Order and Build Confirmation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const order = $input.first().json.body ?? $input.first().json;\nconst confirmationNumber = 'IFS-' + Math.floor(100000 + Math.random() * 900000);\nconsole.log('[Mock IFS ERP] Received order payload:', JSON.stringify(order));\nreturn [{\n  json: {\n    status: 'received',\n    erpSystem: 'IFS Cloud (mocked for demo)',\n    confirmationNumber: confirmationNumber,\n    receivedOrder: order\n  }\n}];"
+      }
+    },
+    {
+      "id": "2ef47e29-2d6c-4558-ab0b-92f2904d4a9f",
+      "name": "Return ERP Confirmation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "IFS ERP Order Receiver (Mock)": {
+      "main": [
+        [
+          {
+            "node": "Log Order and Build Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Order and Build Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Return ERP Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "triggerCount": 0,
+  "versionId": "171a43c4-6614-457b-b427-da34a46e5eaa",
+  "owner": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}
