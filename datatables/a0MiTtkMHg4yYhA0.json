@@ -1,0 +1,32 @@
+{
+  "id": "a0MiTtkMHg4yYhA0",
+  "name": "qa_config",
+  "columns": [
+    {
+      "id": "e7b5lPUKtGd1TNth",
+      "name": "key",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "6xwn7XQ86ZCa3ydp",
+      "name": "value",
+      "type": "number",
+      "index": 1
+    },
+    {
+      "id": "qQKVV6CwhnNGLUaj",
+      "name": "description",
+      "type": "string",
+      "index": 2
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-08T23:40:40.360Z",
+  "updatedAt": "2026-10-08T23:41:21.216Z"
+}

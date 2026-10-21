@@ -1,0 +1,19 @@
+{
+  "id": "2tH32NeGbGxWvAJw",
+  "name": "End User Cred",
+  "type": "databricksOAuth2Api",
+  "data": {
+    "grantType": "",
+    "clientId": "",
+    "clientSecret": "",
+    "host": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "isGlobal": false,
+  "isResolvable": true,
+  "resolvableAllowFallback": false
+}

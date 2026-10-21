@@ -1,0 +1,44 @@
+{
+  "id": "Le1nCFtgsxC0RtZC",
+  "name": "Shipping rate card (MOCK DATA)",
+  "columns": [
+    {
+      "id": "RfXI7CmxMmiHZduK",
+      "name": "carrier",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "IcwDCgEEub4rRLYV",
+      "name": "region",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "1zrI2AevCWXgHPQe",
+      "name": "base_rate",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "YWnXya2Wr12HU0lq",
+      "name": "volume_discount_tier",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "DbTvT0Xkbe1Ca9Fy",
+      "name": "setup_days",
+      "type": "number",
+      "index": 4
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-07T16:54:02.247Z",
+  "updatedAt": "2026-10-07T16:54:09.170Z"
+}

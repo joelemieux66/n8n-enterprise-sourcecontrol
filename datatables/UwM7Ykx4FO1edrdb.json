@@ -1,0 +1,92 @@
+{
+  "id": "UwM7Ykx4FO1edrdb",
+  "name": "qa_tickets",
+  "columns": [
+    {
+      "id": "7XnG9zFKVxb9rdqx",
+      "name": "ticketId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "E6ho4QfADGP5O3LK",
+      "name": "subject",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "dePp0ZkepEJRoSpr",
+      "name": "customerName",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "MjIOia0TnVy4YEgI",
+      "name": "agent",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "ewqTnN6MeRU42NjY",
+      "name": "thread",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "OMHPjPavswE8lwZd",
+      "name": "internalNotes",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "lcPOfQrXpcdxAvl6",
+      "name": "replyCount",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "UPQQJSuvK5stz1C1",
+      "name": "firstResponseMins",
+      "type": "number",
+      "index": 7
+    },
+    {
+      "id": "zjxKrAdIWDPV6aBR",
+      "name": "isBug",
+      "type": "boolean",
+      "index": 8
+    },
+    {
+      "id": "fV9BJAr4TIFsNJKX",
+      "name": "jiraKey",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "RmtTVO6xDOE9utr3",
+      "name": "jiraLinkedMins",
+      "type": "number",
+      "index": 10
+    },
+    {
+      "id": "iym7Bg6YQuYUvIc3",
+      "name": "customerFrustration",
+      "type": "boolean",
+      "index": 11
+    },
+    {
+      "id": "iBTIVZke1OC12WKQ",
+      "name": "scored",
+      "type": "boolean",
+      "index": 12
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-08T23:40:42.249Z",
+  "updatedAt": "2026-10-08T23:48:02.076Z"
+}
