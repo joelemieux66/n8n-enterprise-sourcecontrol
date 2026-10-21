@@ -1,0 +1,134 @@
+{
+  "id": "P9uKvIPsXdnvdIN3",
+  "name": "qa_scores",
+  "columns": [
+    {
+      "id": "HVo65AT8AFN7GNHm",
+      "name": "ticketId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "JfzdKJGK7TNOlHc2",
+      "name": "agent",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "aAIuIYR3Ecz7IR0b",
+      "name": "toneScore",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "CFY10NqHHuIocmra",
+      "name": "nextStepsScore",
+      "type": "number",
+      "index": 3
+    },
+    {
+      "id": "cmp2phZf0ojtXGBA",
+      "name": "channelScore",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "um8L0FsGbP9LrNFd",
+      "name": "rootCauseScore",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "4Wtqrp0FH1yYJDw0",
+      "name": "accuracyScore",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "sB6FxuW4V3VjIfKH",
+      "name": "completenessScore",
+      "type": "number",
+      "index": 7
+    },
+    {
+      "id": "EfJX4Tt6C4wmMKpn",
+      "name": "jiraScore",
+      "type": "number",
+      "index": 8
+    },
+    {
+      "id": "7dtuQbcBbERstsGi",
+      "name": "notesScore",
+      "type": "number",
+      "index": 9
+    },
+    {
+      "id": "swi5sZji8DQNv7Z2",
+      "name": "followUpScore",
+      "type": "number",
+      "index": 10
+    },
+    {
+      "id": "auKqPD4k8XWieDUc",
+      "name": "avgScore",
+      "type": "number",
+      "index": 11
+    },
+    {
+      "id": "Vm3BLmvI8KDrxScR",
+      "name": "minScore",
+      "type": "number",
+      "index": 12
+    },
+    {
+      "id": "GGm8uohAWvhTisL6",
+      "name": "minConfidence",
+      "type": "number",
+      "index": 13
+    },
+    {
+      "id": "GMvitLskLhL7x6OX",
+      "name": "rationale",
+      "type": "string",
+      "index": 14
+    },
+    {
+      "id": "x4NBsTvGQQAIa8o7",
+      "name": "anomalyReasons",
+      "type": "string",
+      "index": 15
+    },
+    {
+      "id": "7dGFWRW7EOyNrhVd",
+      "name": "reviewChannel",
+      "type": "string",
+      "index": 16
+    },
+    {
+      "id": "9isMMiSyAXFt2gmY",
+      "name": "reviewStatus",
+      "type": "string",
+      "index": 17
+    },
+    {
+      "id": "bg2UOEgF8MFIVznu",
+      "name": "tlRating",
+      "type": "string",
+      "index": 18
+    },
+    {
+      "id": "Glff3S8qASlaoI7m",
+      "name": "tlCoachingNotes",
+      "type": "string",
+      "index": 19
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-08T23:40:44.756Z",
+  "updatedAt": "2026-10-08T23:48:01.918Z"
+}

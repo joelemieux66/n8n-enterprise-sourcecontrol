@@ -1,0 +1,50 @@
+{
+  "id": "iDMG6lIwe2Ialg21",
+  "name": "qa_briefs",
+  "columns": [
+    {
+      "id": "vrLFYkgOyQGkQmrL",
+      "name": "briefType",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "JkCHUvoIvZ8bUbxm",
+      "name": "periodLabel",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "uoOpb7MnR1bmk1uF",
+      "name": "avgScore",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "wZbTfwbkYPAUkxkt",
+      "name": "ticketsScored",
+      "type": "number",
+      "index": 3
+    },
+    {
+      "id": "nL04XslVieUTpk3L",
+      "name": "ticketsQueued",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "fQgf1699NlanzSbY",
+      "name": "body",
+      "type": "string",
+      "index": 5
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-08T23:40:45.838Z",
+  "updatedAt": "2026-10-08T23:40:45.838Z"
+}
