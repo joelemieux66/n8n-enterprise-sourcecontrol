@@ -1,0 +1,80 @@
+{
+  "id": "A51gG9E3DuzpNQrk",
+  "name": "Shipping quote log",
+  "columns": [
+    {
+      "id": "xUAwTAx8Z8t1QFZq",
+      "name": "quote_id",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "pNZw6ATRkeT6tLJQ",
+      "name": "customer_name",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "Q3rYwP4lx4fjaCk1",
+      "name": "inputs_object",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "rbpPmVg56qnaowS9",
+      "name": "calculated_price",
+      "type": "number",
+      "index": 3
+    },
+    {
+      "id": "ANOPeWeOCrxSMo3h",
+      "name": "implementation_fee",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "azHo7lbYU7tV1uIV",
+      "name": "calculated_timeline",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "TX1utdRREbSWO2qJ",
+      "name": "approved",
+      "type": "boolean",
+      "index": 6
+    },
+    {
+      "id": "Vot5IIUF4JW0mETe",
+      "name": "reviewer",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "ZAreX3PMghcArzk8",
+      "name": "reviewer_notes",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "lUydIpgvEgsdGA24",
+      "name": "rocketlane_project_id",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "kG5rAvOpshOAHV8n",
+      "name": "timestamp",
+      "type": "string",
+      "index": 10
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-07T16:54:02.349Z",
+  "updatedAt": "2026-10-07T16:54:02.349Z"
+}

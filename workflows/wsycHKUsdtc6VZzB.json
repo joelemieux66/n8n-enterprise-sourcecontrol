@@ -1,0 +1,672 @@
+{
+  "id": "wsycHKUsdtc6VZzB",
+  "name": "TypeSafe AI: PR Merge Gate (learning)",
+  "description": "Learning workflow: TypeSafe AI Evaluate (typed questions + confidence gate) and Route (one output per answer) on sample pull requests.",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a4011fca-8cce-43ee-9b6d-4060b05b3fb9",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "prs",
+              "name": "prs",
+              "type": "array",
+              "value": "={{ [ { \"id\": 101, \"title\": \"Fix typo in README\", \"author\": \"dev-a\", \"touches_sensitive_paths\": false, \"summary\": \"Corrects two spelling mistakes in README.md. No code changes.\" }, { \"id\": 102, \"title\": \"Bump lodash from 4.17.20 to 4.17.21\", \"author\": \"dependabot\", \"touches_sensitive_paths\": false, \"summary\": \"Patch-level dependency bump. package.json and lockfile only. All tests pass.\" }, { \"id\": 103, \"title\": \"Refactor session token validation\", \"author\": \"dev-b\", \"touches_sensitive_paths\": true, \"summary\": \"Changes how auth/session.ts validates JWT expiry and skips signature check when a debug flag is set.\" }, { \"id\": 104, \"title\": \"Add retry logic to export job\", \"author\": \"dev-c\", \"touches_sensitive_paths\": false, \"summary\": \"Adds exponential backoff to the CSV export job. Touches 6 files, adds new tests, but changes a shared queue helper.\" } ] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0293ea07-4a14-4de8-a576-5ede84cb9ecb",
+      "name": "Sample Pull Requests",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "prs",
+        "options": {}
+      },
+      "id": "330fb23e-8d95-4abd-8883-2a7727200806",
+      "name": "One Item Per PR",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        480,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "jev-latest",
+          "cachedResultName": "jev-latest"
+        },
+        "stateText": "=PR title: {{ $json.title }}\nAuthor: {{ $json.author }}\nTouches sensitive paths: {{ $json.touches_sensitive_paths }}\nSummary: {{ $json.summary }}",
+        "questions": {
+          "question": [
+            {
+              "id": "safe_to_merge",
+              "instructions": "Is this pull request safe to merge without a human reviewer?",
+              "trueMeans": "Safe to merge automatically",
+              "falseMeans": "Needs a human or should be blocked"
+            },
+            {
+              "type": "score",
+              "id": "risk",
+              "instructions": "How risky is this change to production security and stability?",
+              "scoreLevels": {
+                "level": [
+                  {
+                    "level": "Trivial: docs or comments only"
+                  },
+                  {
+                    "level": "Low: routine, well-scoped change"
+                  },
+                  {
+                    "level": "Medium: shared code or behaviour change"
+                  },
+                  {
+                    "level": "High: security-relevant or hard to roll back"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true,
+          "simplify": true,
+          "timeout": 20000
+        }
+      },
+      "id": "57b491b0-3f23-46a8-8bd4-7b83d6694dfb",
+      "name": "Evaluate PR Risk",
+      "type": "@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi",
+      "typeVersion": 1,
+      "position": [
+        768,
+        160
+      ],
+      "credentials": {
+        "typeSafeAiApi": {
+          "id": "PLBnF9ORnI0XxUb5",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.touches_sensitive_paths }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "50d00086-93fd-4606-b048-22536ff6cb7a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hard rule: sensitive paths"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.answers.safe_to_merge.value }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "rightValue": 0.9,
+                    "id": "0c61b4e7-8646-44b5-a432-504ad9477576"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Auto-merge (>= 0.90)"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.answers.safe_to_merge.value }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    },
+                    "rightValue": 0.3,
+                    "id": "1e30c714-49e1-4145-a407-41e3132ae8ac"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Block (<= 0.30)"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Uncertain (0.30 - 0.90)"
+        }
+      },
+      "id": "162e15c9-8e41-4d0e-ba0c-5b82480cc4fb",
+      "name": "Autonomy Gate",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1",
+              "name": "decision",
+              "type": "string",
+              "value": "HUMAN_REVIEW"
+            },
+            {
+              "id": "r1",
+              "name": "reason",
+              "type": "string",
+              "value": "Touches sensitive paths, so a human always reviews regardless of model confidence"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "2dc56a4f-953a-403b-9e06-46eb45cfd003",
+      "name": "Decision: Human Review (hard rule)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2",
+              "name": "decision",
+              "type": "string",
+              "value": "AUTO_MERGE"
+            },
+            {
+              "id": "r2",
+              "name": "reason",
+              "type": "string",
+              "value": "=Model is confident this is safe ({{ $json.answers.safe_to_merge.value }})"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "87b744d8-8d79-40e1-ad1c-aef1ae8c955b",
+      "name": "Decision: Auto-merge",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3",
+              "name": "decision",
+              "type": "string",
+              "value": "BLOCK"
+            },
+            {
+              "id": "r3",
+              "name": "reason",
+              "type": "string",
+              "value": "=Model is confident this is NOT safe ({{ $json.answers.safe_to_merge.value }})"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "cb51dc7c-6efa-41a4-945f-7aef7cfd80ae",
+      "name": "Decision: Block",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d4",
+              "name": "decision",
+              "type": "string",
+              "value": "HUMAN_REVIEW"
+            },
+            {
+              "id": "r4",
+              "name": "reason",
+              "type": "string",
+              "value": "=Model is unsure ({{ $json.answers.safe_to_merge.value }}), so a human decides"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "9f0873df-ed5b-457f-9ebb-a6eff30add95",
+      "name": "Decision: Human Review (uncertain)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "route",
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "jev-latest",
+          "cachedResultName": "jev-latest"
+        },
+        "stateText": "=PR title: {{ $json.title }}\nSummary: {{ $json.summary }}",
+        "routeInstructions": "What kind of change is this pull request?",
+        "routes": {
+          "route": [
+            {
+              "name": "Docs",
+              "description": "Documentation, comments or typo fixes only"
+            },
+            {
+              "name": "Dependency bump",
+              "description": "Updates third-party package versions"
+            },
+            {
+              "name": "Security-sensitive",
+              "description": "Touches authentication, authorization, secrets or crypto"
+            },
+            {
+              "name": "Feature or refactor",
+              "description": "Application logic changes that do not fit the other categories"
+            }
+          ]
+        },
+        "confidenceHandling": "separateOutput",
+        "confidenceThreshold": 0.6,
+        "options": {
+          "includeOtherFields": true,
+          "simplify": true,
+          "timeout": 20000
+        }
+      },
+      "id": "9cba5ebd-f8b7-4850-aa29-e6b594da77f2",
+      "name": "Route PR by Type",
+      "type": "@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi",
+      "typeVersion": 1,
+      "position": [
+        768,
+        704
+      ],
+      "credentials": {
+        "typeSafeAiApi": {
+          "id": "PLBnF9ORnI0XxUb5",
+          "name": "Personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "l1",
+              "name": "lane",
+              "type": "string",
+              "value": "docs: fast-track"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "502df89f-b197-448b-a794-69f00e6d5892",
+      "name": "Lane: Docs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "l2",
+              "name": "lane",
+              "type": "string",
+              "value": "deps: run CVE and test checks"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "dfdb2260-94c9-4b47-99da-8b2e7f5cbfca",
+      "name": "Lane: Dependency bump",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "l3",
+              "name": "lane",
+              "type": "string",
+              "value": "security: notify AppSec reviewer"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "5590c30f-0755-47b0-b92d-3efce8a6f1d9",
+      "name": "Lane: Security-sensitive",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "l4",
+              "name": "lane",
+              "type": "string",
+              "value": "feature: standard peer review"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "27e98247-0da0-4844-be36-9dbbf45b377a",
+      "name": "Lane: Feature or refactor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "l5",
+              "name": "lane",
+              "type": "string",
+              "value": "unsure: send to triage queue"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "7f2f98b3-eefc-452b-881e-da96f2267f41",
+      "name": "Lane: Fallback (unsure)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Lane 1: Evaluate\nOne call, several typed questions. Returns a probability (noul), a level (score) and a confidence for each.\n\nThe Autonomy Gate turns those numbers into auto, review or block. Tune the 0.90 / 0.30 thresholds to the cost of being wrong.\n\nFirst run: open the Evaluate node output and confirm the field paths used in the gate (answers.safe_to_merge.value).",
+        "height": 192,
+        "width": 512,
+        "color": 4
+      },
+      "id": "08cdfacf-2e7f-4cb8-8358-4c28863134d0",
+      "name": "Sticky Note e757308b",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Lane 2: Route\nOne question, one output per answer. With \"separate output\" confidence handling, low-confidence items go to a Fallback output instead of a forced guess.",
+        "height": 128,
+        "width": 416,
+        "color": 5
+      },
+      "id": "fa56e6d3-ea54-4904-a40e-c6193de36669",
+      "name": "Sticky Note 93616f8f",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Sample Pull Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Pull Requests": {
+      "main": [
+        [
+          {
+            "node": "One Item Per PR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One Item Per PR": {
+      "main": [
+        [
+          {
+            "node": "Evaluate PR Risk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route PR by Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate PR Risk": {
+      "main": [
+        [
+          {
+            "node": "Autonomy Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autonomy Gate": {
+      "main": [
+        [
+          {
+            "node": "Decision: Human Review (hard rule)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decision: Auto-merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decision: Block",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decision: Human Review (uncertain)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route PR by Type": {
+      "main": [
+        [
+          {
+            "node": "Lane: Docs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lane: Dependency bump",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lane: Security-sensitive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lane: Feature or refactor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lane: Fallback (unsure)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "7753efea-ff1c-477c-8df6-cdf92b572cce",
+  "owner": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}
