@@ -1,0 +1,86 @@
+{
+  "id": "PHdi7G1buaIpCI2l",
+  "name": "poc_dead_letter",
+  "columns": [
+    {
+      "id": "WgC1dQsblUITNX5e",
+      "name": "eventId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "97h0L4Ou4CqIMEIi",
+      "name": "correlationId",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "1r1K4dOLRvIL7sPE",
+      "name": "entity",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "ZbCbPMboqiSaZFXs",
+      "name": "recordId",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "TUl9oRs8D0qpzfgg",
+      "name": "failedStage",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "oMIkKmKpG6A4fmEb",
+      "name": "errorClass",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "s7aiin6HYLhVLjwB",
+      "name": "httpStatus",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "o9DV9PKuO1wAP6h3",
+      "name": "errorMessage",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "2lTWCCk5gqd4MZn2",
+      "name": "attempts",
+      "type": "number",
+      "index": 8
+    },
+    {
+      "id": "i6jjAnq7wlk9F5pt",
+      "name": "status",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "DZwvAmKEsJscFMVg",
+      "name": "replayCount",
+      "type": "number",
+      "index": 10
+    },
+    {
+      "id": "iUw3d525QaY9BqPU",
+      "name": "payload_object",
+      "type": "string",
+      "index": 11
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:28:51.433Z",
+  "updatedAt": "2026-10-30T18:40:56.012Z"
+}

@@ -1,0 +1,98 @@
+{
+  "id": "bNlbxgDnwYeltY0n",
+  "name": "poc_sf_events",
+  "columns": [
+    {
+      "id": "FWJg5gek47Qf7F59",
+      "name": "eventId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "zwgjFXFcgmjZVxee",
+      "name": "correlationId",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "U5l38lzvXfq4IY1w",
+      "name": "source",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "GMVAFpPpmxqoWl6f",
+      "name": "entity",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "DS2JQuiLM4r8Zx2l",
+      "name": "changeType",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "K7f3nJpww6aLC18d",
+      "name": "recordId",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "sG0lnzCoNCPEBE6u",
+      "name": "replayId",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "V76zD1xNZXXNkTBb",
+      "name": "status",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "7IS78N20QG8HkF4o",
+      "name": "attempts",
+      "type": "number",
+      "index": 8
+    },
+    {
+      "id": "qV4VWNHnJ7odpvmn",
+      "name": "erpId",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "IO45RPNNm1CN7TDz",
+      "name": "lastError",
+      "type": "string",
+      "index": 10
+    },
+    {
+      "id": "j5gDz3mnu7vHEaDO",
+      "name": "payload_object",
+      "type": "string",
+      "index": 11
+    },
+    {
+      "id": "pHlJlhnpgMy8iaRj",
+      "name": "receivedAt",
+      "type": "string",
+      "index": 12
+    },
+    {
+      "id": "gYg3M7n7v8l5W02h",
+      "name": "processedAt",
+      "type": "string",
+      "index": 13
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:28:50.152Z",
+  "updatedAt": "2026-10-30T18:40:55.996Z"
+}

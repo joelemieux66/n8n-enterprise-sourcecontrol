@@ -1,0 +1,67 @@
+{
+  "id": "HfH1Id4Dlo3szOXr",
+  "name": "qa_config",
+  "columns": [
+    {
+      "id": "uvaqEqBgmcMY7FmO",
+      "name": "spot_check_pct",
+      "type": "number",
+      "index": 0
+    },
+    {
+      "id": "AolcioaCVW7V1qrC",
+      "name": "random_pct",
+      "type": "number",
+      "index": 1
+    },
+    {
+      "id": "y72xJAWJTM6SSNRS",
+      "name": "reply_count_threshold",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "geA0tQyrr4ZiQuVI",
+      "name": "frt_deviation_hours",
+      "type": "number",
+      "index": 3
+    },
+    {
+      "id": "JT7P0qj1sPJzJP0c",
+      "name": "target_review_pct",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "XoexBpMnC0NgN9ad",
+      "name": "frt_norm_hours",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "OxG0S0Nx1ZQVI2aM",
+      "name": "top_score_min_avg",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "SiJ2PkmFEfZ0iiES",
+      "name": "low_score_threshold",
+      "type": "number",
+      "index": 7
+    },
+    {
+      "id": "JQYTuoeC0QekM6G8",
+      "name": "notes",
+      "type": "string",
+      "index": 8
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "YuefNGBVyc5aCs7Z",
+    "teamName": "Prospect Demos"
+  },
+  "createdAt": "2026-11-12T19:19:30.499Z",
+  "updatedAt": "2026-11-12T19:19:40.431Z"
+}

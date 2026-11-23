@@ -1,0 +1,110 @@
+{
+  "id": "w3LhLBgYVXpPRwte",
+  "name": "poc_erp_customers",
+  "columns": [
+    {
+      "id": "YVW3A0YGwkWX9xFJ",
+      "name": "externalId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "x77hT0qNx6D8palj",
+      "name": "erpId",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "wDvfjzPTam9jg9cL",
+      "name": "name",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "dp1VB9Yq5pPNZQay",
+      "name": "legalName",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "IxkctGuZWPC7UNdu",
+      "name": "email",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "2xRQ69wHiPw0aABo",
+      "name": "phone",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "xuAdCC7xJx8tJVka",
+      "name": "countryCode",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "qvA5rhCCYP9FE1xa",
+      "name": "industrySegment",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "yuPaMiUxlSUye1UX",
+      "name": "paymentTerms",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "0Yb4ybsC7AWuz2XP",
+      "name": "salesRep",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "8pDd5evXwzEJoLLY",
+      "name": "billingAddress_object",
+      "type": "string",
+      "index": 10
+    },
+    {
+      "id": "byz2g6fcpXFm4pli",
+      "name": "contacts_object",
+      "type": "string",
+      "index": 11
+    },
+    {
+      "id": "N7falLaojhe4Nd6o",
+      "name": "creditLimit",
+      "type": "number",
+      "index": 12
+    },
+    {
+      "id": "PyRSqDgTsNNqerwX",
+      "name": "currency",
+      "type": "string",
+      "index": 13
+    },
+    {
+      "id": "8KKwtp8vgx6uNjPY",
+      "name": "syncedFrom",
+      "type": "string",
+      "index": 14
+    },
+    {
+      "id": "5RGkbKBxgY3UUx4z",
+      "name": "version",
+      "type": "number",
+      "index": 15
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:28:56.729Z",
+  "updatedAt": "2026-10-30T18:40:56.042Z"
+}
