@@ -1,0 +1,74 @@
+{
+  "id": "SV3XqrnLmNAdKaQQ",
+  "name": "poc_batch_source",
+  "columns": [
+    {
+      "id": "aNVhYcpSgWMr03Ux",
+      "name": "recordId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "PSnCNvYhTdTaacR7",
+      "name": "name",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "WUUDbleMIlfFiboB",
+      "name": "amount",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "iRIyOQOb5ST878ct",
+      "name": "region",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "bf3LUF7xWWVWJ65U",
+      "name": "status",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "t43Akp4oTd7bSww8",
+      "name": "attempts",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "rYz9vVH0OZn3eMDF",
+      "name": "runId",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "DWezR0nLX5qUuHQ8",
+      "name": "chunkNo",
+      "type": "number",
+      "index": 7
+    },
+    {
+      "id": "rtTULkinpT0ldBvP",
+      "name": "lastError",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "GunYgOYbXsTuoF96",
+      "name": "erpRef",
+      "type": "string",
+      "index": 9
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:28:59.075Z",
+  "updatedAt": "2026-11-21T07:00:23.049Z"
+}

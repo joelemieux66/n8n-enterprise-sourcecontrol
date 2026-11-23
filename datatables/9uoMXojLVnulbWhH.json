@@ -1,0 +1,79 @@
+{
+  "id": "9uoMXojLVnulbWhH",
+  "name": "edi_transactions",
+  "columns": [
+    {
+      "id": "wjqlz38dsI2oaIbD",
+      "name": "poNumber",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "HaWRMdvqr1qJJkm1",
+      "name": "partnerId",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "tojY8TaQI6escfLf",
+      "name": "interchangeControl",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "umn1TUqXFuErc6zc",
+      "name": "status",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "mf7xLYZnFRi3zkWs",
+      "name": "lineCount",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "zkAwZ85tKat7NLL0",
+      "name": "orderTotal",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "adqVPJIsdgN1knsY",
+      "name": "ackType",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "OnsKblnmn36QBxFf",
+      "name": "ackControl",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "W5xK9vjsfpro285B",
+      "name": "errors_object",
+      "type": "string",
+      "index": 8
+    },
+    {
+      "id": "SBceEgSMysYoaZxj",
+      "name": "lines_object",
+      "type": "string",
+      "index": 9
+    },
+    {
+      "id": "pIIEpastdagdX1pI",
+      "name": "ackX12",
+      "type": "string",
+      "index": 10
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "YuefNGBVyc5aCs7Z",
+    "teamName": "Prospect Demos"
+  },
+  "createdAt": "2026-11-20T13:59:12.486Z",
+  "updatedAt": "2026-11-20T14:02:30.132Z"
+}

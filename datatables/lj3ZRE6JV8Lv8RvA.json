@@ -1,0 +1,79 @@
+{
+  "id": "lj3ZRE6JV8Lv8RvA",
+  "name": "qa_eval_dataset",
+  "columns": [
+    {
+      "id": "yuBXAQkAX5lPH7K6",
+      "name": "ticket_id",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "IdtypoAtBLzA5M7P",
+      "name": "ticket_json_object",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "mRDqSPusA0aVPDAS",
+      "name": "tl_s1",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "zt6ztpQdatmW11eD",
+      "name": "tl_s2",
+      "type": "number",
+      "index": 3
+    },
+    {
+      "id": "249CBmsNtQKQNdSv",
+      "name": "tl_s3",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "orIrn6T0rwOb2IjF",
+      "name": "tl_s4",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "9lzRq3oNyzPWBw9I",
+      "name": "tl_s5",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "yqg6K7Wd4GRFPEtT",
+      "name": "tl_s6",
+      "type": "number",
+      "index": 7
+    },
+    {
+      "id": "b7H7dEgDgNvKjeiy",
+      "name": "tl_s8",
+      "type": "number",
+      "index": 8
+    },
+    {
+      "id": "Jy7OKVfVwTBXbDXs",
+      "name": "tl_s9",
+      "type": "number",
+      "index": 9
+    },
+    {
+      "id": "HNo8nSxaTwVu5TXl",
+      "name": "tl_notes",
+      "type": "string",
+      "index": 10
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "YuefNGBVyc5aCs7Z",
+    "teamName": "Prospect Demos"
+  },
+  "createdAt": "2026-11-12T19:19:36.451Z",
+  "updatedAt": "2026-11-12T19:20:38.934Z"
+}

@@ -1,0 +1,68 @@
+{
+  "id": "kQq4h3NKtn9Ty59r",
+  "name": "My workflow 14",
+  "description": null,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "87e90288-d66d-42ed-a4d3-280dd14f810b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "9b226fbb-acb4-49df-9fd1-07608b975692",
+      "name": "Get many messages",
+      "webhookId": "bb6abc8d-aabc-4b08-9925-7a072ec90a11",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "eVGy3zigipi8OJ14",
+          "name": "Gmail"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "triggerCount": 0,
+  "versionId": "50e072a8-33d0-416a-848e-8f156a257e07",
+  "owner": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "nodeGroups": []
+}

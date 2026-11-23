@@ -53,49 +53,7 @@
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "jev-latest",
-          "cachedResultName": "jev-latest"
-        },
-        "stateText": "=PR title: {{ $json.title }}\nAuthor: {{ $json.author }}\nTouches sensitive paths: {{ $json.touches_sensitive_paths }}\nSummary: {{ $json.summary }}",
-        "questions": {
-          "question": [
-            {
-              "id": "safe_to_merge",
-              "instructions": "Is this pull request safe to merge without a human reviewer?",
-              "trueMeans": "Safe to merge automatically",
-              "falseMeans": "Needs a human or should be blocked"
-            },
-            {
-              "type": "score",
-              "id": "risk",
-              "instructions": "How risky is this change to production security and stability?",
-              "scoreLevels": {
-                "level": [
-                  {
-                    "level": "Trivial: docs or comments only"
-                  },
-                  {
-                    "level": "Low: routine, well-scoped change"
-                  },
-                  {
-                    "level": "Medium: shared code or behaviour change"
-                  },
-                  {
-                    "level": "High: security-relevant or hard to roll back"
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        "options": {
-          "includeOtherFields": true,
-          "simplify": true,
-          "timeout": 20000
-        }
+        "operation": "evaluate"
       },
       "id": "57b491b0-3f23-46a8-8bd4-7b83d6694dfb",
       "name": "Evaluate PR Risk",
@@ -326,42 +284,7 @@
     },
     {
       "parameters": {
-        "operation": "route",
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "jev-latest",
-          "cachedResultName": "jev-latest"
-        },
-        "stateText": "=PR title: {{ $json.title }}\nSummary: {{ $json.summary }}",
-        "routeInstructions": "What kind of change is this pull request?",
-        "routes": {
-          "route": [
-            {
-              "name": "Docs",
-              "description": "Documentation, comments or typo fixes only"
-            },
-            {
-              "name": "Dependency bump",
-              "description": "Updates third-party package versions"
-            },
-            {
-              "name": "Security-sensitive",
-              "description": "Touches authentication, authorization, secrets or crypto"
-            },
-            {
-              "name": "Feature or refactor",
-              "description": "Application logic changes that do not fit the other categories"
-            }
-          ]
-        },
-        "confidenceHandling": "separateOutput",
-        "confidenceThreshold": 0.6,
-        "options": {
-          "includeOtherFields": true,
-          "simplify": true,
-          "timeout": 20000
-        }
+        "operation": "route"
       },
       "id": "9cba5ebd-f8b7-4850-aa29-e6b594da77f2",
       "name": "Route PR by Type",
@@ -529,6 +452,19 @@
         0,
         480
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        0
+      ],
+      "id": "f9ed438d-7ef5-40cc-8137-ae801c2d445d",
+      "name": "Code in JavaScript"
     }
   ],
   "connections": {
@@ -651,6 +587,17 @@
           }
         ]
       ]
+    },
+    "Decision: Human Review (hard rule)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -659,7 +606,7 @@
     "binaryMode": "separate"
   },
   "triggerCount": 0,
-  "versionId": "7753efea-ff1c-477c-8df6-cdf92b572cce",
+  "versionId": "db50f873-a9dd-47e4-a5c3-28719f421d33",
   "owner": {
     "type": "personal",
     "projectId": "9Qu7G77ANe0l0aLA",
