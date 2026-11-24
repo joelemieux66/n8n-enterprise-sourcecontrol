@@ -1,0 +1,17 @@
+{
+  "id": "FJjrHUYkH2SBX5ZY",
+  "name": "Gmail account",
+  "type": "gmailOAuth2",
+  "data": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "W8qK4dCyGa2lOmi7",
+    "teamName": "KR1"
+  },
+  "isGlobal": false,
+  "isResolvable": true,
+  "resolvableAllowFallback": false
+}

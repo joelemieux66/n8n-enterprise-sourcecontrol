@@ -79,6 +79,46 @@
       "homeProjectId": "9Qu7G77ANe0l0aLA",
       "createdAt": "2026-08-30T16:52:38.069Z",
       "updatedAt": "2026-08-30T16:52:38.069Z"
+    },
+    {
+      "id": "a9ZTN1Qz3yITmRrn",
+      "name": "CPI Security",
+      "parentFolderId": null,
+      "homeProjectId": "9Qu7G77ANe0l0aLA",
+      "createdAt": "2026-10-22T12:40:40.020Z",
+      "updatedAt": "2026-10-22T12:40:40.020Z"
+    },
+    {
+      "id": "prK0iQUyIEGl7ufO",
+      "name": "POC 1",
+      "parentFolderId": "a9ZTN1Qz3yITmRrn",
+      "homeProjectId": "9Qu7G77ANe0l0aLA",
+      "createdAt": "2026-10-22T12:40:59.269Z",
+      "updatedAt": "2026-10-22T12:40:59.269Z"
+    },
+    {
+      "id": "hs0T2tRyqxDqpM5A",
+      "name": "POC 2",
+      "parentFolderId": "a9ZTN1Qz3yITmRrn",
+      "homeProjectId": "9Qu7G77ANe0l0aLA",
+      "createdAt": "2026-10-22T12:41:11.559Z",
+      "updatedAt": "2026-10-22T12:41:11.559Z"
+    },
+    {
+      "id": "4AlDChnqd7cRBjWz",
+      "name": "Shared Plumbing",
+      "parentFolderId": "a9ZTN1Qz3yITmRrn",
+      "homeProjectId": "9Qu7G77ANe0l0aLA",
+      "createdAt": "2026-10-22T12:41:28.369Z",
+      "updatedAt": "2026-10-22T12:41:28.369Z"
+    },
+    {
+      "id": "jB3fRC1XHkx0X09c",
+      "name": "Helpers",
+      "parentFolderId": "a9ZTN1Qz3yITmRrn",
+      "homeProjectId": "9Qu7G77ANe0l0aLA",
+      "createdAt": "2026-10-22T12:44:54.182Z",
+      "updatedAt": "2026-10-22T12:44:54.182Z"
     }
   ]
 }

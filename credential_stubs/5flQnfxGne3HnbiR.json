@@ -1,0 +1,17 @@
+{
+  "id": "5flQnfxGne3HnbiR",
+  "name": "End User Cred",
+  "type": "salesforceOAuth2Api",
+  "data": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "ownedBy": {
+    "type": "team",
+    "teamId": "LDZbeEPHll7aysDT",
+    "teamName": "Testing"
+  },
+  "isGlobal": false,
+  "isResolvable": true,
+  "resolvableAllowFallback": false
+}

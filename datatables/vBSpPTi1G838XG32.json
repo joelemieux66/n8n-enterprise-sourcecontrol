@@ -1,0 +1,26 @@
+{
+  "id": "vBSpPTi1G838XG32",
+  "name": "poc_mock_attempts",
+  "columns": [
+    {
+      "id": "pX4GaM41FY5YHrsX",
+      "name": "attemptKey",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "XVU2rw9oK9xp7aIB",
+      "name": "count",
+      "type": "number",
+      "index": 1
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:28:57.703Z",
+  "updatedAt": "2026-11-21T07:00:22.413Z"
+}

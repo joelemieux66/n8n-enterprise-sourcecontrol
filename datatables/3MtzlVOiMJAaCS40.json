@@ -1,0 +1,80 @@
+{
+  "id": "3MtzlVOiMJAaCS40",
+  "name": "poc_batch_runs",
+  "columns": [
+    {
+      "id": "Bm4xlEhOisfjsztA",
+      "name": "runId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "vOcyEei7dwgLOjqp",
+      "name": "status",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "74FGBB2RG0sYPsJB",
+      "name": "total",
+      "type": "number",
+      "index": 2
+    },
+    {
+      "id": "wsDWSCZmsElhmGGM",
+      "name": "chunks",
+      "type": "number",
+      "index": 3
+    },
+    {
+      "id": "HT8UTpLOAe9razPk",
+      "name": "chunkSize",
+      "type": "number",
+      "index": 4
+    },
+    {
+      "id": "ajyZmbfBTyOCa3J1",
+      "name": "simulate",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "TNAD8yERlobuSE9u",
+      "name": "startedAt",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "P4zom9oxcsEcX4sq",
+      "name": "finishedAt",
+      "type": "string",
+      "index": 7
+    },
+    {
+      "id": "U3iCjd9KPn7vA4VA",
+      "name": "synced",
+      "type": "number",
+      "index": 8
+    },
+    {
+      "id": "DdeSuAYZQQlCBAOA",
+      "name": "failed",
+      "type": "number",
+      "index": 9
+    },
+    {
+      "id": "fajSOANyMKZUmQpG",
+      "name": "dead",
+      "type": "number",
+      "index": 10
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:29:00.208Z",
+  "updatedAt": "2026-11-21T07:00:23.283Z"
+}

@@ -1,0 +1,62 @@
+{
+  "id": "IqmNWZH0KTXqjuiF",
+  "name": "poc_run_log",
+  "columns": [
+    {
+      "id": "66hEai4B3mt0Olu3",
+      "name": "correlationId",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "nPlOhB6HB6fuLZei",
+      "name": "runId",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "nbSiOHGVno92xbMx",
+      "name": "workflow",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "NcOm0BSmOVCDUy5R",
+      "name": "stage",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "0yfWRMCrJxcw1t46",
+      "name": "level",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "XyHTljzCEIkinPFI",
+      "name": "message",
+      "type": "string",
+      "index": 5
+    },
+    {
+      "id": "x3v6R0XJ2QSMQ03k",
+      "name": "detail_object",
+      "type": "string",
+      "index": 6
+    },
+    {
+      "id": "DCJAPAx96WuRyVty",
+      "name": "executionId",
+      "type": "string",
+      "index": 7
+    }
+  ],
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "9Qu7G77ANe0l0aLA",
+    "projectName": "Joe Lemieux <joe.lemieux@n8n.io>",
+    "personalEmail": "joe.lemieux@n8n.io"
+  },
+  "createdAt": "2026-10-21T20:28:52.743Z",
+  "updatedAt": "2026-11-23T16:57:54.081Z"
+}

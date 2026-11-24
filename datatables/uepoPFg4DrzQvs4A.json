@@ -1,0 +1,271 @@
+{
+  "id": "uepoPFg4DrzQvs4A",
+  "name": "qa_scores",
+  "columns": [
+    {
+      "id": "9TNCaadFXeP2aILj",
+      "name": "ticket_id",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "id": "Vymx9uddnrO1bv0a",
+      "name": "ticket_url",
+      "type": "string",
+      "index": 1
+    },
+    {
+      "id": "u3FVB40pEPEmJ61n",
+      "name": "subject",
+      "type": "string",
+      "index": 2
+    },
+    {
+      "id": "AMtrrMcsP9GJF71q",
+      "name": "agent",
+      "type": "string",
+      "index": 3
+    },
+    {
+      "id": "gZIwMh3U4bEuHaUa",
+      "name": "requester",
+      "type": "string",
+      "index": 4
+    },
+    {
+      "id": "SnAOvJaWOeErOLKf",
+      "name": "s1_tone",
+      "type": "number",
+      "index": 5
+    },
+    {
+      "id": "MG5VuLP7JMGSYCGn",
+      "name": "s2_next_steps",
+      "type": "number",
+      "index": 6
+    },
+    {
+      "id": "u38Us4yqklMIyjDB",
+      "name": "s3_channel",
+      "type": "number",
+      "index": 7
+    },
+    {
+      "id": "2ZjlWB8vddYVFZ2R",
+      "name": "s4_root_cause",
+      "type": "number",
+      "index": 8
+    },
+    {
+      "id": "6jVBQRKhcPwwjVUf",
+      "name": "s5_accuracy",
+      "type": "number",
+      "index": 9
+    },
+    {
+      "id": "A9skliEfKaQOXFkU",
+      "name": "s6_completeness",
+      "type": "number",
+      "index": 10
+    },
+    {
+      "id": "0KttjxbZppZSAsO3",
+      "name": "s7_jira",
+      "type": "number",
+      "index": 11
+    },
+    {
+      "id": "ilcwTg3LWB6XWRto",
+      "name": "s8_notes",
+      "type": "number",
+      "index": 12
+    },
+    {
+      "id": "U6Zs4Ef4Ol2htpoI",
+      "name": "s9_followup",
+      "type": "number",
+      "index": 13
+    },
+    {
+      "id": "30CkXr8RTJdIGKWa",
+      "name": "conf_1",
+      "type": "string",
+      "index": 14
+    },
+    {
+      "id": "z7wQIIh8r5q1ICFD",
+      "name": "conf_2",
+      "type": "string",
+      "index": 15
+    },
+    {
+      "id": "czFqv0SiQEojg5IE",
+      "name": "conf_3",
+      "type": "string",
+      "index": 16
+    },
+    {
+      "id": "rPzNBHTzaILQD2aC",
+      "name": "conf_4",
+      "type": "string",
+      "index": 17
+    },
+    {
+      "id": "eeH1zLHeOB4Bd4dr",
+      "name": "conf_5",
+      "type": "string",
+      "index": 18
+    },
+    {
+      "id": "AngoAjomPrWYCd4z",
+      "name": "conf_6",
+      "type": "string",
+      "index": 19
+    },
+    {
+      "id": "TYzvRYcosQzHtErM",
+      "name": "conf_7",
+      "type": "string",
+      "index": 20
+    },
+    {
+      "id": "OSwxJT2APh1OfL9X",
+      "name": "conf_8",
+      "type": "string",
+      "index": 21
+    },
+    {
+      "id": "bBijspPUt9w0G8HH",
+      "name": "conf_9",
+      "type": "string",
+      "index": 22
+    },
+    {
+      "id": "93iqedR4P3GintQy",
+      "name": "overall_avg",
+      "type": "number",
+      "index": 23
+    },
+    {
+      "id": "2eBzfKfEiCXliigY",
+      "name": "frt_hours",
+      "type": "number",
+      "index": 24
+    },
+    {
+      "id": "f6g5Lakclwpxk64h",
+      "name": "resolution_hours",
+      "type": "number",
+      "index": 25
+    },
+    {
+      "id": "Qhx5Ljb315Bs3xK0",
+      "name": "reply_count",
+      "type": "number",
+      "index": 26
+    },
+    {
+      "id": "9x1sp4GJChk3xHLS",
+      "name": "is_bug",
+      "type": "boolean",
+      "index": 27
+    },
+    {
+      "id": "Cvwi7hhrFwQkVt3n",
+      "name": "jira_key",
+      "type": "string",
+      "index": 28
+    },
+    {
+      "id": "WEcVMwAuN8PBqBas",
+      "name": "customer_frustration",
+      "type": "boolean",
+      "index": 29
+    },
+    {
+      "id": "THyoYW9yL8PzkUPe",
+      "name": "escalation_language",
+      "type": "boolean",
+      "index": 30
+    },
+    {
+      "id": "qSfmf5LEqP0FdcKW",
+      "name": "unusual_back_and_forth",
+      "type": "boolean",
+      "index": 31
+    },
+    {
+      "id": "f1t6l1VtDAJBSrta",
+      "name": "doc_gap",
+      "type": "string",
+      "index": 32
+    },
+    {
+      "id": "o128SHNRN7S2h0n6",
+      "name": "review_channel",
+      "type": "string",
+      "index": 33
+    },
+    {
+      "id": "XPzG4JgaxJi9BLeK",
+      "name": "review_reason",
+      "type": "string",
+      "index": 34
+    },
+    {
+      "id": "GitIC742ex7IT8j7",
+      "name": "needs_review",
+      "type": "boolean",
+      "index": 35
+    },
+    {
+      "id": "QJIm70YOMbLP4FFr",
+      "name": "low_categories_object",
+      "type": "string",
+      "index": 36
+    },
+    {
+      "id": "YViaK9pfQTk4rT5f",
+      "name": "evidence_object",
+      "type": "string",
+      "index": 37
+    },
+    {
+      "id": "Z8HfLA1dFa28Lfgp",
+      "name": "tokens_used",
+      "type": "number",
+      "index": 38
+    },
+    {
+      "id": "YxMGZ4NnsPtbJzEN",
+      "name": "scored_at",
+      "type": "string",
+      "index": 39
+    },
+    {
+      "id": "fIUgfNNXr8EiZNK8",
+      "name": "tl_final_rating",
+      "type": "string",
+      "index": 40
+    },
+    {
+      "id": "cWp7XvS3smmjPMHl",
+      "name": "tl_notes",
+      "type": "string",
+      "index": 41
+    },
+    {
+      "id": "g5Z4SRYdVNPOI1yg",
+      "name": "tl_reviewed_at",
+      "type": "string",
+      "index": 42
+    }
+  ],
+  "ownedBy": {
+    "type": "team",
+    "teamId": "YuefNGBVyc5aCs7Z",
+    "teamName": "Prospect Demos"
+  },
+  "createdAt": "2026-11-12T19:19:34.766Z",
+  "updatedAt": "2026-11-12T19:28:29.710Z"
+}
