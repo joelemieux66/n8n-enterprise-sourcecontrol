@@ -1,6 +1,7 @@
 {
   "id": "1gnx8dVbttlaTWUj",
   "name": "My workflow",
+  "description": null,
   "nodes": [
     {
       "parameters": {},
@@ -37,7 +38,7 @@
         416,
         0
       ],
-      "id": "09d47340-3990-4b61-a558-83ffe661847f",
+      "id": "169a39aa-9c41-4f1f-8b2f-6d6af90c4c14",
       "name": "AI Agent"
     }
   ],
@@ -71,7 +72,7 @@
     "availableInMCP": false
   },
   "triggerCount": 0,
-  "versionId": "6a3ec931-e104-4338-90f9-57748fbc2eaa",
+  "versionId": "a6d4e894-39b0-4a8b-b95b-20bf1f41ffb2",
   "owner": {
     "type": "team",
     "teamId": "LDZbeEPHll7aysDT",
