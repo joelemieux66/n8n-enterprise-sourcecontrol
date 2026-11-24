@@ -26,6 +26,51 @@
       ],
       "id": "ed5167af-64ff-4638-b988-c141a39d4fad",
       "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "warehouseId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.databricks",
+      "typeVersion": 1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "33c2f254-5c1c-4f12-9dae-63525c5e8af3",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "databricksOAuth2Api": {
+          "id": "2tH32NeGbGxWvAJw",
+          "name": "End User Cred"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "files",
+        "operation": "createDirectory"
+      },
+      "type": "n8n-nodes-base.databricks",
+      "typeVersion": 1,
+      "position": [
+        816,
+        0
+      ],
+      "id": "fe1725c8-12e6-44a5-b773-8ea92771125d",
+      "name": "Create a directory",
+      "credentials": {
+        "databricksOAuth2Api": {
+          "id": "2tH32NeGbGxWvAJw",
+          "name": "End User Cred"
+        }
+      }
     }
   ],
   "connections": {
@@ -39,6 +84,28 @@
           }
         ]
       ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Create a directory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -46,7 +113,7 @@
     "binaryMode": "separate"
   },
   "triggerCount": 0,
-  "versionId": "4992bada-915e-46ac-b089-be2693f60466",
+  "versionId": "fa73e2ee-2ce6-48f7-b804-1a956569cd3f",
   "owner": {
     "type": "team",
     "teamId": "LDZbeEPHll7aysDT",
